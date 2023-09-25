@@ -2,4 +2,4 @@ jdk:
   - openjdk17
 install:
   - echo "Running a custom install command"
-  - ./gradlew build :JetPDFVue:publishMavenReleasePublicationToMavenLocal
+  - ./gradlew build :JetPDFVue:publishJetPDFVuePublicationToMavenLocal
