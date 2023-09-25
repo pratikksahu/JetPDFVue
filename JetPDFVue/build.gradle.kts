@@ -1,15 +1,14 @@
-import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
-
 plugins {
+    id("kotlin-android")
+    id("maven-publish")
     id("com.android.library")
     id("org.jetbrains.kotlin.android")
     id("kotlin-parcelize")
-    id("maven-publish")
 }
 
 android {
     namespace = "com.pratikk.jetpdfvue"
-    compileSdk = 33
+    compileSdk = 34
 
     defaultConfig {
         minSdk = 21
@@ -39,6 +38,16 @@ android {
     }
     buildFeatures {
         compose = true
+    }
+    configure<PublishingExtension> {
+        publications.create<MavenPublication>("JetPDFVue") {
+            groupId = "com.github.pratikksahu"
+            artifactId = "JetPDFVue"
+            version = "1.0.0"
+            afterEvaluate {
+                from(components["release"])
+            }
+        }
     }
 }
 dependencies {
