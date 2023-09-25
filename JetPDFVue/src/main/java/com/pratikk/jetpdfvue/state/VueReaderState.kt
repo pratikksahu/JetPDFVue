@@ -29,6 +29,7 @@ import com.pratikk.jetpdfvue.generateFileName
 import com.pratikk.jetpdfvue.util.getFile
 import com.pratikk.jetpdfvue.util.mergePdf
 import com.pratikk.jetpdfvue.network.VueDownload
+import com.pratikk.jetpdfvue.util.share
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.Dispatchers
@@ -79,7 +80,8 @@ abstract class VueReaderState(
     abstract val currentPage: Int
 
     abstract val isScrolling: Boolean
-
+    abstract suspend fun nextPage()
+    abstract suspend fun prevPage()
     fun close() {
         vueRenderer?.close()
         vueRenderer = null
@@ -383,4 +385,7 @@ abstract class VueReaderState(
 
     }
 
+    fun sharePDF(context: Context){
+        file?.share(context)
+    }
 }

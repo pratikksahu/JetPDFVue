@@ -37,6 +37,7 @@ import com.pratikk.jetpdfvue.util.pinchToZoomAndDrag
 fun VerticalVueReader(
     modifier: Modifier = Modifier,
     contentModifier: Modifier = Modifier,
+    userScrollEnabled:Boolean = true,
     verticalVueReaderState: VerticalVueReaderState
 ) {
     val density = LocalDensity.current
@@ -52,8 +53,8 @@ fun VerticalVueReader(
             .onSizeChanged {
                 boxHeight = with(density) { it.height.toDp() }
             },
+        userScrollEnabled = userScrollEnabled,
         state = verticalVueReaderState.lazyListState,
-        userScrollEnabled = true
     ) {
         items(vueRenderer!!.pageCount) { idx ->
             val pageContent by vueRenderer.pageLists[idx].stateFlow.collectAsState()

@@ -18,9 +18,14 @@ class VerticalVueReaderState(
 ) : VueReaderState(resource) {
 
     internal var lazyListState = LazyListState(0, 0)
-
+    override suspend fun nextPage(){
+        lazyListState.animateScrollToItem(currentPage() + 1)
+    }
+    override suspend fun prevPage(){
+        lazyListState.animateScrollToItem(currentPage() - 1)
+    }
     override val currentPage: Int
-        get() = currentPage()
+        get() = currentPage() + 1
 
     private fun currentPage():Int {
         return vueRenderer?.let { pdfRender ->
@@ -38,7 +43,7 @@ class VerticalVueReaderState(
                     break
                 }
             }
-            lastVisibleIndex + 1
+            lastVisibleIndex
         } ?: 0
     }
 

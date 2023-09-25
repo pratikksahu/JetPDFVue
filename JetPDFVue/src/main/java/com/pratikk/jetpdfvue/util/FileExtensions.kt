@@ -1,11 +1,13 @@
 package com.pratikk.jetpdfvue.util
 
 import android.content.Context
+import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.Matrix
 import android.media.ExifInterface
 import android.net.Uri
+import androidx.core.content.FileProvider
 import java.io.File
 import java.io.FileOutputStream
 
@@ -126,5 +128,29 @@ fun File.reduceSize() {
             bitmap.compress(Bitmap.CompressFormat.JPEG, 100, it)
         else
             bitmap.compress(Bitmap.CompressFormat.PNG, 100, it)
+    }
+}
+
+fun File.share(context: Context) {
+    if (exists()) {
+        //call share intent to share file
+        val sharingIntent = Intent(Intent.ACTION_SEND)
+        val uri = FileProvider.getUriForFile(
+            context,
+            context.applicationContext.packageName + ".provider",
+            this
+        )
+        if (this.name.contains("pdf"))
+            sharingIntent.type = "application/pdf"
+        else
+            sharingIntent.type = "image/*"
+        sharingIntent.putExtra(Intent.EXTRA_STREAM, uri)
+        sharingIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+        context.startActivity(
+            Intent.createChooser(
+                sharingIntent,
+                "Share via"
+            )
+        )
     }
 }

@@ -24,6 +24,12 @@ class HorizontalVueReaderState(
         initialPageOffsetFraction = 0f,
         updatedPageCount = { pdfPageCount })
 
+    override suspend fun nextPage(){
+        pagerState.animateScrollToPage(pagerState.currentPage + 1)
+    }
+    override suspend fun prevPage(){
+        pagerState.animateScrollToPage(pagerState.currentPage - 1)
+    }
     override val currentPage: Int
         get() = pagerState.currentPage + 1
     override val isScrolling: Boolean
