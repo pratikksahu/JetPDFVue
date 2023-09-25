@@ -13,8 +13,12 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material.icons.filled.RotateLeft
+import androidx.compose.material.icons.filled.RotateRight
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
@@ -154,6 +158,24 @@ fun HorizontalPdfViewer() {
                         )
                     }
                 }
+                Row(
+                    modifier = Modifier
+                        .align(Alignment.BottomCenter)
+                        .padding(horizontal = 8.dp, vertical = 12.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    IconButton(onClick = {
+                        horizontalVueReaderState.rotate(-90F)
+                    }) {
+                        Icon(imageVector = Icons.Filled.RotateLeft, contentDescription = "")
+                    }
+                    Spacer(modifier = Modifier.width(8.dp))
+                    IconButton(onClick = {
+                        horizontalVueReaderState.rotate(90F)
+                    }) {
+                        Icon(imageVector = Icons.Filled.RotateRight, contentDescription = "")
+                    }
+                }
             }
 
             is VueLoadState.DocumentLoading -> {
@@ -239,6 +261,12 @@ fun VerticalPdfViewer() {
                             .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.38f))
                             .padding(10.dp)
                     )
+                    Spacer(modifier = Modifier.weight(1f))
+                    IconButton(onClick = {
+                        verticalVueReaderState.rotate(90F)
+                    }) {
+                        Icon(imageVector = Icons.Filled.Refresh, contentDescription = "")
+                    }
                 }
             }
 

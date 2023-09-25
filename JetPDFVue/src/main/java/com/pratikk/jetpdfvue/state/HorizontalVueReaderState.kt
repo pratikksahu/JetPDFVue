@@ -30,6 +30,14 @@ class HorizontalVueReaderState(
     override suspend fun prevPage(){
         pagerState.animateScrollToPage(pagerState.currentPage - 1)
     }
+
+    override fun rotate(angle: Float) {
+        vueRenderer?.pageLists?.get(pagerState.currentPage)?.apply {
+            rotation += angle % 360F
+            refresh()
+        }
+    }
+
     override val currentPage: Int
         get() = pagerState.currentPage + 1
     override val isScrolling: Boolean

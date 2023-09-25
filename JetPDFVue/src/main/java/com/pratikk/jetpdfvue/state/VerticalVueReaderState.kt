@@ -24,6 +24,14 @@ class VerticalVueReaderState(
     override suspend fun prevPage(){
         lazyListState.animateScrollToItem(currentPage() - 1)
     }
+
+    override fun rotate(angle: Float) {
+        vueRenderer?.pageLists?.get(currentPage())?.apply {
+            rotation += angle % 360F
+            refresh()
+        }
+    }
+
     override val currentPage: Int
         get() = currentPage() + 1
 

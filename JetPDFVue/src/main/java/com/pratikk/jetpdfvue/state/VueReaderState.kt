@@ -340,7 +340,6 @@ abstract class VueReaderState(
                                 ?.contains("pdf") == true
                         ) {
                             val importedPdf = uri.getFile(context)
-                            interceptResult(importedPdf)
                             //If there is no existing pdf and no pdf for that document then copy imported doc to downloadDocumentFile
                             if (file != null && !file!!.exists() && file!!.length() == 0L) {
                                 importedPdf.copyTo(file!!, true)
@@ -388,4 +387,6 @@ abstract class VueReaderState(
     fun sharePDF(context: Context){
         file?.share(context)
     }
+
+    abstract fun rotate(angle: Float)
 }

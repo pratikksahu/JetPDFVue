@@ -2,6 +2,7 @@ package com.pratikk.jetpdfvue
 
 import android.graphics.Bitmap
 import android.graphics.Canvas
+import android.graphics.Matrix
 import android.graphics.pdf.PdfRenderer
 import android.os.ParcelFileDescriptor
 import androidx.compose.ui.unit.IntSize
@@ -73,7 +74,7 @@ internal class VueRenderer(
                 dim
             }
         }
-
+        var rotation: Float = 0F
         var job: Job? = null
 
         val stateFlow = MutableStateFlow<VuePageState>(
@@ -85,8 +86,8 @@ internal class VueRenderer(
 
         var isLoaded = false
 
-        fun load() {
-            if (!isLoaded) {
+        fun load(refresh:Boolean = false) {
+            if (!isLoaded || refresh) {
                 job = coroutineScope.launch {
                     mutex.withLock {
                         var newBitmap: Bitmap
@@ -99,11 +100,31 @@ internal class VueRenderer(
                                 newBitmap,
                                 null,
                                 null,
-                                PdfRenderer.Page.RENDER_MODE_FOR_PRINT
+                                PdfRenderer.Page.RENDER_MODE_FOR_DISPLAY
                             )
                         }
-                        isLoaded = true
-                        stateFlow.emit(VuePageState.LoadedState(newBitmap)) }
+                        if (rotation != 0F) {
+                            val matrix = Matrix().apply {
+                                postRotate(rotation)
+                            }
+                            val rotatedBitmap = Bitmap.createBitmap(
+                                newBitmap,
+                                0,
+                                0,
+                                newBitmap.width,
+                                newBitmap.height,
+                                matrix,
+                                true
+                            )
+                            newBitmap.recycle()
+                            isLoaded = true
+                            stateFlow.emit(VuePageState.LoadedState(rotatedBitmap))
+                        } else {
+                            isLoaded = true
+                            stateFlow.emit(VuePageState.LoadedState(newBitmap))
+                        }
+                    }
+
                 }
             }
         }
@@ -118,6 +139,19 @@ internal class VueRenderer(
                 )
             )
             oldBitmap?.content?.recycle()
+        }
+
+        fun refresh() {
+            stateFlow.tryEmit(
+                VuePageState.BlankState(
+                    width = dimension.width,
+                    height = dimension.height
+                )
+            )
+            isLoaded = false
+            val oldBitmap = stateFlow.value as? VuePageState.LoadedState
+            oldBitmap?.content?.recycle()
+            load()
         }
 
         private fun createBlankBitmap(

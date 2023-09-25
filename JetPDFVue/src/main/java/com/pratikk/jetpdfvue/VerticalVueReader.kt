@@ -37,7 +37,6 @@ import com.pratikk.jetpdfvue.util.pinchToZoomAndDrag
 fun VerticalVueReader(
     modifier: Modifier = Modifier,
     contentModifier: Modifier = Modifier,
-    userScrollEnabled:Boolean = true,
     verticalVueReaderState: VerticalVueReaderState
 ) {
     val density = LocalDensity.current
@@ -53,7 +52,7 @@ fun VerticalVueReader(
             .onSizeChanged {
                 boxHeight = with(density) { it.height.toDp() }
             },
-        userScrollEnabled = userScrollEnabled,
+        userScrollEnabled = false,
         state = verticalVueReaderState.lazyListState,
     ) {
         items(vueRenderer!!.pageCount) { idx ->
@@ -64,18 +63,20 @@ fun VerticalVueReader(
                     vueRenderer.pageLists[idx].recycle()
                 }
             }
-            when (pageContent) {
-                is VuePageState.BlankState -> {
-                    BlankPage(modifier = contentModifier,width = holderSize.width, height = holderSize.height)
-                }
-                is VuePageState.LoadedState -> {
-                    Image(
-                        modifier = contentModifier
-                            .clipToBounds()
-                            .pinchToZoomAndDrag(),
-                        bitmap = (pageContent as VuePageState.LoadedState).content.asImageBitmap(),
-                        contentDescription = ""
-                    )
+            AnimatedContent(targetState = pageContent, label = "") {
+                when (it) {
+                    is VuePageState.BlankState -> {
+                        BlankPage(modifier = contentModifier,width = holderSize.width, height = holderSize.height)
+                    }
+                    is VuePageState.LoadedState -> {
+                        Image(
+                            modifier = contentModifier
+                                .clipToBounds()
+                                .pinchToZoomAndDrag(),
+                            bitmap = it.content.asImageBitmap(),
+                            contentDescription = ""
+                        )
+                    }
                 }
             }
         }

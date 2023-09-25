@@ -37,7 +37,6 @@ import com.pratikk.jetpdfvue.util.pinchToZoomAndDrag
 fun HorizontalVueReader(
     modifier: Modifier = Modifier,
     contentModifier: Modifier = Modifier,
-    userScrollEnabled:Boolean = true,
     horizontalVueReaderState: HorizontalVueReaderState,
 ) {
     val density = LocalDensity.current
@@ -54,7 +53,7 @@ fun HorizontalVueReader(
                 .onSizeChanged {
                     boxWidth = with(density) { it.width.toDp() }
                 },
-            userScrollEnabled = userScrollEnabled,
+            userScrollEnabled = false,
             state = horizontalVueReaderState.pagerState
         ) { idx ->
             val pageContent by vueRenderer.pageLists[idx].stateFlow.collectAsState()
@@ -64,21 +63,27 @@ fun HorizontalVueReader(
                     vueRenderer.pageLists[idx].recycle()
                 }
             }
-            when (pageContent) {
-                is VuePageState.BlankState -> {
-                    BlankPage(modifier = contentModifier,width = holderSize.width, height = holderSize.height)
-                }
+            AnimatedContent(targetState = pageContent, label = "") {
+                when (it) {
+                    is VuePageState.BlankState -> {
+                        BlankPage(
+                            modifier = contentModifier,
+                            width = holderSize.width,
+                            height = holderSize.height
+                        )
+                    }
 
-                is VuePageState.LoadedState -> {
-                    Image(
-                        modifier = contentModifier
-                            .clipToBounds()
-                            .pinchToZoomAndDrag(),
-                        bitmap = (pageContent as VuePageState.LoadedState).content.asImageBitmap(),
-                        contentDescription = ""
-                    )
-                }
+                    is VuePageState.LoadedState -> {
+                        Image(
+                            modifier = contentModifier
+                                .clipToBounds()
+                                .pinchToZoomAndDrag(),
+                            bitmap = it.content.asImageBitmap(),
+                            contentDescription = ""
+                        )
+                    }
 
+                }
             }
         }
 }

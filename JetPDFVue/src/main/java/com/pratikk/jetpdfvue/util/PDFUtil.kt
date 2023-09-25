@@ -233,7 +233,7 @@ suspend fun mergePdf(oldPdfPath: String, importedPdfPath: String) {
 }
 
 @OptIn(ExperimentalFoundationApi::class)
-fun Modifier.pinchToZoomAndDrag(rotateX:() -> Float = {0F}) = composed {
+fun Modifier.pinchToZoomAndDrag() = composed {
     val angle by remember { mutableStateOf(0f) }
     var zoom by remember { mutableStateOf(1f) }
     var offsetX by remember { mutableStateOf(0f) }
@@ -262,7 +262,7 @@ fun Modifier.pinchToZoomAndDrag(rotateX:() -> Float = {0F}) = composed {
         .graphicsLayer(
             scaleX = zoom,
             scaleY = zoom,
-            rotationZ = angle + rotateX(),
+            rotationZ = angle,
         )
         .pointerInput(Unit) {
             detectTransformGestures(
