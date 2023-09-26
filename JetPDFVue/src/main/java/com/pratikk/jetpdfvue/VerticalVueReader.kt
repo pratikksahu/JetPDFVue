@@ -71,6 +71,7 @@ fun VerticalVueReader(
                     is VuePageState.LoadedState -> {
                         Image(
                             modifier = contentModifier
+                                .requiredHeightIn(min = boxHeight)
                                 .clipToBounds()
                                 .pinchToZoomAndDrag(),
                             bitmap = it.content.asImageBitmap(),

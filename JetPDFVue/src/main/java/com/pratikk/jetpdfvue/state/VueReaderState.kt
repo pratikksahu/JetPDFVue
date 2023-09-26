@@ -7,7 +7,6 @@ import android.net.Uri
 import android.os.Build
 import android.os.ParcelFileDescriptor
 import android.provider.MediaStore
-import android.util.Base64
 import android.util.Log
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.ActivityResultLauncher
@@ -28,7 +27,8 @@ import com.pratikk.jetpdfvue.util.copyFile
 import com.pratikk.jetpdfvue.generateFileName
 import com.pratikk.jetpdfvue.util.getFile
 import com.pratikk.jetpdfvue.util.mergePdf
-import com.pratikk.jetpdfvue.network.VueDownload
+import com.pratikk.jetpdfvue.network.vueDownload
+import com.pratikk.jetpdfvue.toBase64File
 import com.pratikk.jetpdfvue.util.share
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.CoroutineStart
@@ -36,9 +36,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import java.io.File
-import java.io.FileOutputStream
 
 abstract class VueReaderState(
     val vueResource: VueResourceType
@@ -154,15 +152,7 @@ abstract class VueReaderState(
             is VueResourceType.Base64 -> {
                 coroutineScope.launch(Dispatchers.IO) {
                     runCatching {
-                        val _file = File(context.filesDir, generateFileName())
-                        with(FileOutputStream(_file, false)) {
-                            withContext(Dispatchers.IO) {
-                                write(Base64.decode(vueResource.file, Base64.DEFAULT))
-                                flush()
-                                close()
-                            }
-                        }
-                        mFile = _file
+                        mFile = vueResource.file.toBase64File()
                         initRenderer()
                     }.onFailure {
                         vueLoadState = VueLoadState.DocumentError(it)
@@ -185,7 +175,7 @@ abstract class VueReaderState(
                 coroutineScope.launch(Dispatchers.IO) {
                     runCatching {
                         val _file = File(context.filesDir, generateFileName())
-                        VueDownload(
+                        vueDownload(
                             vueResource,
                             _file,
                             onProgressChange = { progress ->
@@ -194,10 +184,10 @@ abstract class VueReaderState(
                             onSuccess = {
                                 mFile = _file
                                 initRenderer()
-                            },
-                            onError = {
-                                throw it
-                            })
+                            }
+                        ) {
+                            throw it
+                        }
                     }.onFailure {
                         vueLoadState = VueLoadState.DocumentError(it)
                     }
@@ -208,7 +198,7 @@ abstract class VueReaderState(
                 coroutineScope.launch(Dispatchers.IO) {
                     runCatching {
                         val _file = File(context.filesDir, generateFileName())
-                        VueDownload(
+                        vueDownload(
                             vueResource,
                             _file,
                             onProgressChange = { progress ->
@@ -217,10 +207,10 @@ abstract class VueReaderState(
                             onSuccess = {
                                 mFile = _file
                                 initRenderer()
-                            },
-                            onError = {
-                                throw it
-                            })
+                            }
+                        ) {
+                            throw it
+                        }
                     }.onFailure {
                         vueLoadState = VueLoadState.DocumentError(it)
                     }

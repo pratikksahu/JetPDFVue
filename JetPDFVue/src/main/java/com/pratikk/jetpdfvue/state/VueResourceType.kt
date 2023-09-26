@@ -4,6 +4,7 @@ import android.net.Uri
 import android.os.Parcelable
 import androidx.annotation.RawRes
 import kotlinx.parcelize.Parcelize
+import java.io.File
 
 sealed class VueResourceType{
     @Parcelize
@@ -19,7 +20,7 @@ sealed class VueResourceType{
     ) : VueResourceType(), Parcelable
 
     @Parcelize
-    data class Base64(val file: String) : VueResourceType(), Parcelable
+    data class Base64(val file: File) : VueResourceType(), Parcelable
 
     @Parcelize
     data class RemoteBase64(

@@ -1,12 +1,10 @@
 package com.pratikk.jetpdfvue.network
 
-import android.content.Context
 import android.util.Base64
+import android.util.Log
 import com.pratikk.jetpdfvue.state.VueResourceType
-import kotlinx.coroutines.CoroutineScope
+import com.pratikk.jetpdfvue.util.addImageToPdf
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.isActive
 import kotlinx.coroutines.withContext
 import java.io.BufferedInputStream
 import java.io.ByteArrayOutputStream
@@ -17,13 +15,14 @@ import java.net.HttpURLConnection
 import java.net.URL
 import java.net.UnknownHostException
 
-suspend fun CoroutineScope.VueDownload(
+suspend fun vueDownload(
     vueResource: VueResourceType,
     file: File,
-    onProgressChange:(Int) -> Unit,
+    onProgressChange: (Int) -> Unit,
     onSuccess: () -> Unit,
     onError: (Exception) -> Unit
 ) {
+    val TAG = "VUEDOWNLOAD"
     withContext(Dispatchers.IO){
         try {
             // URL of the file you want to download
@@ -73,6 +72,8 @@ suspend fun CoroutineScope.VueDownload(
 
             // Get the content length (file size) from the response headers
             val contentLength = connection.getHeaderField("Content-Length")
+            val contentType = connection.getHeaderField("Content-Type")
+            Log.d(TAG,contentType)
             val fileSize = contentLength?.toLong() ?: throw Exception("File not found on server")
             // Read and write the file data
             val buffer = ByteArray(1024)
@@ -80,10 +81,25 @@ suspend fun CoroutineScope.VueDownload(
             var totalBytesRead = 0
             when (vueResource) {
                 is VueResourceType.Remote -> {
-                    while (bufferedInputStream.read(buffer).also { bytesRead = it } != -1) {
-                        outputStream.write(buffer, 0, bytesRead)
-                        totalBytesRead += bytesRead
-                        onProgressChange((totalBytesRead.toDouble() / fileSize.toDouble() * 100).toInt())
+                    if(contentType.contains("pdf")) {
+                        while (bufferedInputStream.read(buffer).also { bytesRead = it } != -1) {
+                            outputStream.write(buffer, 0, bytesRead)
+                            totalBytesRead += bytesRead
+                            onProgressChange((totalBytesRead.toDouble() / fileSize.toDouble() * 100).toInt())
+                        }
+                    }else if(contentType.contains("image")){
+                        //Convert to pdf
+                        val imgFile = File.createTempFile("imageTemp",contentType.split("/")[1])
+                        val imgOutputStream = FileOutputStream(imgFile)
+                        while (bufferedInputStream.read(buffer).also { bytesRead = it } != -1) {
+                            imgOutputStream.write(buffer, 0, bytesRead)
+                            totalBytesRead += bytesRead
+                            onProgressChange((totalBytesRead.toDouble() / fileSize.toDouble() * 100).toInt())
+                        }
+                        imgOutputStream.close()
+                        addImageToPdf(imageFilePath = imgFile.absolutePath, pdfPath = file.absolutePath)
+                    }else{
+                        throw Exception("Invalid content type")
                     }
                     // Close the streams
                     outputStream.close()

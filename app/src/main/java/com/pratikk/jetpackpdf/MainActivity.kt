@@ -5,17 +5,22 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentSize
+import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Refresh
@@ -37,19 +42,28 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
+import com.pratikk.jetpackpdf.horizontalSamples.HorizontalPdfViewer
+import com.pratikk.jetpackpdf.horizontalSamples.HorizontalSampleA
+import com.pratikk.jetpackpdf.horizontalSamples.HorizontalSampleB
 import com.pratikk.jetpackpdf.ui.theme.JetpackPDFTheme
+import com.pratikk.jetpackpdf.verticalSamples.VerticalPdfViewer
+import com.pratikk.jetpackpdf.verticalSamples.VerticalSampleA
 import com.pratikk.jetpdfvue.HorizontalVueReader
 import com.pratikk.jetpdfvue.VerticalVueReader
 import com.pratikk.jetpdfvue.VueHorizontalSlider
+import com.pratikk.jetpdfvue.state.HorizontalVueReaderState
+import com.pratikk.jetpdfvue.state.VerticalVueReaderState
 import com.pratikk.jetpdfvue.state.VueLoadState
 import com.pratikk.jetpdfvue.state.VueResourceType
 import com.pratikk.jetpdfvue.state.rememberHorizontalVueReaderState
 import com.pratikk.jetpdfvue.state.rememberVerticalVueReaderState
+import com.pratikk.jetpdfvue.toFile
 import com.pratikk.jetpdfvue.util.reduceSize
 import kotlinx.coroutines.launch
 
@@ -63,7 +77,7 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    HorizontalPdfViewer()
+                    VerticalPreview()
                 }
             }
         }
@@ -71,239 +85,49 @@ class MainActivity : ComponentActivity() {
 }
 
 @Composable
-fun HorizontalPdfViewer() {
+fun HorizontalPreview(){
     val context = LocalContext.current
-    val scope = rememberCoroutineScope()
-    val horizontalVueReaderState = rememberHorizontalVueReaderState(
-        resource = VueResourceType.Remote(
-            "https://myreport.altervista.org/Lorem_Ipsum.pdf"
+    val assetReader = rememberHorizontalVueReaderState(
+        resource = VueResourceType.Asset(R.raw.lorem_ipsum)
+    )
+    val localBase64Reader = rememberHorizontalVueReaderState(
+        resource = VueResourceType.Base64(
+            context.assets.open("lorem_ipsum_base64.txt").let { inputStream ->
+                inputStream.toFile(extension = ".txt")
+            }
         )
     )
+    val remoteBase64Reader =
+        rememberHorizontalVueReaderState(resource = VueResourceType.RemoteBase64("https://drive.google.com/uc?export=download&id=1-mmdJ2K2x3MDgTqmFd8sMpW3zIFyNYY-"))
+    val remoteReader =
+        rememberHorizontalVueReaderState(resource = VueResourceType.Remote("https://drive.google.com/uc?export=download&id=1DSA7cmFzqCtTsHhlB0xdYJ6UweuC8IOz"))
 
-    val launcher = horizontalVueReaderState.getImportLauncher(interceptResult = {
-        it.reduceSize()
-    })
-
-    BoxWithConstraints(
-        modifier = Modifier
-            .fillMaxSize(),
-        contentAlignment = Alignment.Center
-    ) {
-        val configuration = LocalConfiguration.current
-        val containerSize = remember {
-            IntSize(constraints.maxWidth, constraints.maxHeight)
-        }
-
-        LaunchedEffect(Unit) {
-            horizontalVueReaderState.load(
-                context = context,
-                coroutineScope = scope,
-                containerSize = containerSize,
-                isPortrait = configuration.orientation == Configuration.ORIENTATION_PORTRAIT,
-                customResource = null
-            )
-        }
-        when (horizontalVueReaderState.vueLoadState) {
-            is VueLoadState.NoDocument -> {
-                Button(onClick = {horizontalVueReaderState.launchImportIntent(
-                    context = context,
-                    launcher = launcher
-                )}) {
-                    Text(text = "Import Document")
-                }
-            }
-            is VueLoadState.DocumentError -> {
-                Column {
-                    Text(text = "Error:  ${horizontalVueReaderState.vueLoadState.getErrorMessage}")
-                    Button(onClick = {
-                        scope.launch {
-                            horizontalVueReaderState.load(
-                                context = context,
-                                coroutineScope = scope,
-                                containerSize = containerSize,
-                                isPortrait = configuration.orientation == Configuration.ORIENTATION_PORTRAIT,
-                                customResource = null
-                            )
-                        }
-                    }) {
-                        Text(text = "Retry")
-                    }
-                }
-            }
-
-            is VueLoadState.DocumentImporting -> {
-
-            }
-
-            is VueLoadState.DocumentLoaded -> {
-
-                HorizontalVueReader(
-                    modifier = Modifier.fillMaxSize(),
-                    contentModifier = Modifier
-                        .padding(PaddingValues(vertical = 10.dp))
-                        .fillMaxSize(),
-                    horizontalVueReaderState = horizontalVueReaderState
-                )
-                Row(
-                    modifier = Modifier
-                        .align(Alignment.TopCenter)
-                        .padding(horizontal = 8.dp, vertical = 12.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(
-                        text = "${horizontalVueReaderState.currentPage} of ${horizontalVueReaderState.pdfPageCount}\n${horizontalVueReaderState.isDocumentModified}",
-                        modifier = Modifier
-                            .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.38f))
-                            .padding(10.dp)
-                    )
-                    Spacer(modifier = Modifier.weight(1f))
-                    IconButton(
-                        onClick = {
-                            horizontalVueReaderState.launchImportIntent(
-                                context = context,
-                                launcher = launcher
-                            )
-                        }
-                    ) {
-                        Icon(
-                            imageVector = Icons.Filled.Add,
-                            contentDescription = "Add Page"
-                        )
-                    }
-                }
-                Column(
-                    Modifier
-                        .align(Alignment.BottomCenter)
-                ) {
-                    VueHorizontalSlider(
-                        modifier = Modifier
-                            .padding(horizontal = 10.dp, vertical = 10.dp)
-                            .fillMaxWidth()
-                            .height(40.dp),
-                        horizontalVueReaderState = horizontalVueReaderState
-                    )
-                    Row(
-                        modifier = Modifier
-                            .padding(horizontal = 8.dp, vertical = 12.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        IconButton(onClick = {
-                            horizontalVueReaderState.rotate(-90F)
-                        }) {
-                            Icon(imageVector = Icons.Filled.RotateLeft, contentDescription = "")
-                        }
-                        Spacer(modifier = Modifier.width(8.dp))
-                        IconButton(onClick = {
-                            horizontalVueReaderState.rotate(90F)
-                        }) {
-                            Icon(imageVector = Icons.Filled.RotateRight, contentDescription = "")
-                        }
-                    }
-                }
-
-            }
-
-            is VueLoadState.DocumentLoading -> {
-                Column {
-                    CircularProgressIndicator()
-                    Text(text = "Loading ${horizontalVueReaderState.loadPercent}")
-                }
-            }
-        }
-    }
+    val remoteImageLink = listOf("https://images.pexels.com/photos/943907/pexels-photo-943907.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2","https://images.freeimages.com/images/large-previews/7f3/path-1441068.jpg")
+    val remoteImage =
+        rememberHorizontalVueReaderState(resource = VueResourceType.Remote(remoteImageLink[0]))
+    HorizontalPdfViewer(horizontalVueReaderState = assetReader)
 }
-
 @Composable
-fun VerticalPdfViewer() {
-    val configuration = LocalConfiguration.current
+fun VerticalPreview(){
     val context = LocalContext.current
-    val scope = rememberCoroutineScope()
-    val verticalVueReaderState = rememberVerticalVueReaderState(
-        resource = VueResourceType.Remote(
-            "https://myreport.altervista.org/Lorem_Ipsum.pdf"
+    val assetReader = rememberVerticalVueReaderState(
+        resource = VueResourceType.Asset(R.raw.lorem_ipsum)
+    )
+    val localBase64Reader = rememberVerticalVueReaderState(
+        resource = VueResourceType.Base64(
+            context.assets.open("lorem_ipsum_base64.txt").let { inputStream ->
+                inputStream.toFile(extension = ".txt")
+            }
         )
     )
-    var containerSize by remember {
-        mutableStateOf<IntSize?>(null)
-    }
-    if (containerSize != null)
-        LaunchedEffect(Unit) {
-            verticalVueReaderState.load(
-                context = context,
-                coroutineScope = scope,
-                containerSize = containerSize!!,
-                isPortrait = configuration.orientation == Configuration.ORIENTATION_PORTRAIT,
-                customResource = null
-            )
-        }
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .onSizeChanged {
-                containerSize = it
-            },
-        contentAlignment = Alignment.Center
-    ) {
-        when (verticalVueReaderState.vueLoadState) {
-            is VueLoadState.NoDocument -> {
+    val remoteBase64Reader =
+        rememberVerticalVueReaderState(resource = VueResourceType.RemoteBase64("https://drive.google.com/uc?export=download&id=1-mmdJ2K2x3MDgTqmFd8sMpW3zIFyNYY-"))
+    val remoteReader =
+        rememberVerticalVueReaderState(resource = VueResourceType.Remote("https://drive.google.com/uc?export=download&id=1DSA7cmFzqCtTsHhlB0xdYJ6UweuC8IOz"))
 
-            }
-            is VueLoadState.DocumentError -> {
-                Column {
-                    Text(text = "Error:  ${verticalVueReaderState.vueLoadState.getErrorMessage}")
-                    Button(onClick = {
-                        scope.launch {
-                            verticalVueReaderState.load(
-                                context = context,
-                                coroutineScope = scope,
-                                containerSize = containerSize!!,
-                                isPortrait = configuration.orientation == Configuration.ORIENTATION_PORTRAIT,
-                                customResource = null
-                            )
-                        }
-                    }) {
-                        Text(text = "Retry")
-                    }
-                }
-            }
-
-            is VueLoadState.DocumentImporting -> {
-
-            }
-
-            is VueLoadState.DocumentLoaded -> {
-                VerticalVueReader(
-                    modifier = Modifier.fillMaxSize(),
-                    contentModifier = Modifier.padding(PaddingValues(vertical = 10.dp)),
-                    verticalVueReaderState = verticalVueReaderState,
-                )
-                Row(
-                    modifier = Modifier
-                        .align(Alignment.TopCenter)
-                        .padding(horizontal = 8.dp, vertical = 12.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(
-                        text = "${verticalVueReaderState.currentPage} of ${verticalVueReaderState.pdfPageCount}",
-                        modifier = Modifier
-                            .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.38f))
-                            .padding(10.dp)
-                    )
-                    Spacer(modifier = Modifier.weight(1f))
-                    IconButton(onClick = {
-                        verticalVueReaderState.rotate(90F)
-                    }) {
-                        Icon(imageVector = Icons.Filled.Refresh, contentDescription = "")
-                    }
-                }
-            }
-
-            is VueLoadState.DocumentLoading -> {
-                Column {
-                    CircularProgressIndicator()
-                    Text(text = "Loading ${verticalVueReaderState.loadPercent}")
-                }
-            }
-        }
-    }
+    val remoteImageLink = listOf("https://images.pexels.com/photos/943907/pexels-photo-943907.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2","https://images.freeimages.com/images/large-previews/7f3/path-1441068.jpg")
+    val remoteImage =
+        rememberVerticalVueReaderState(resource = VueResourceType.Remote(remoteImageLink[0]))
+    VerticalPdfViewer(verticalVueReaderState = assetReader)
 }
+
