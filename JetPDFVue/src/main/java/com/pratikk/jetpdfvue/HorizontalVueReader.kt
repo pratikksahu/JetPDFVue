@@ -39,20 +39,10 @@ fun HorizontalVueReader(
     contentModifier: Modifier = Modifier,
     horizontalVueReaderState: HorizontalVueReaderState,
 ) {
-    val density = LocalDensity.current
-    var boxWidth by remember {
-        mutableStateOf(0.dp)
-    }
-    val holderSize by remember {
-        mutableStateOf(IntSize(0, 0))
-    }
     val vueRenderer = horizontalVueReaderState.vueRenderer
     if (vueRenderer != null)
         HorizontalPager(
-            modifier = modifier
-                .onSizeChanged {
-                    boxWidth = with(density) { it.width.toDp() }
-                },
+            modifier = modifier,
             userScrollEnabled = false,
             state = horizontalVueReaderState.pagerState
         ) { idx ->
@@ -68,8 +58,8 @@ fun HorizontalVueReader(
                     is VuePageState.BlankState -> {
                         BlankPage(
                             modifier = contentModifier,
-                            width = holderSize.width,
-                            height = holderSize.height
+                            width = horizontalVueReaderState.containerSize!!.width,
+                            height = horizontalVueReaderState.containerSize!!.height
                         )
                     }
 

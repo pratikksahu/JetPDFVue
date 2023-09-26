@@ -15,46 +15,30 @@ class VerticalVueReaderState(
     resource: VueResourceType
 ) : VueReaderState(resource) {
 
-    internal var lazyListState = LazyListState(0, 0)
+    internal var pagerState = VuePagerState(
+        initialPage = 0,
+        initialPageOffsetFraction = 0f,
+        updatedPageCount = { pdfPageCount })
+
     override suspend fun nextPage(){
-        lazyListState.animateScrollToItem(currentPage() + 1)
+        pagerState.animateScrollToPage(pagerState.currentPage + 1)
     }
     override suspend fun prevPage(){
-        lazyListState.animateScrollToItem(currentPage() - 1)
+        pagerState.animateScrollToPage(pagerState.currentPage - 1)
     }
 
     override fun rotate(angle: Float) {
-        vueRenderer?.pageLists?.get(currentPage())?.apply {
+        vueRenderer?.pageLists?.get(pagerState.currentPage)?.apply {
             rotation += angle % 360F
             refresh()
         }
     }
 
     override val currentPage: Int
-        get() = currentPage() + 1
-
-    private fun currentPage():Int {
-        return vueRenderer?.let { pdfRender ->
-            val currentMinIndex = lazyListState.firstVisibleItemIndex
-            var lastVisibleIndex = currentMinIndex
-            var totalVisiblePortion =
-                (pdfRender.pageLists[currentMinIndex].dimension.height) - lazyListState.firstVisibleItemScrollOffset
-            for (i in currentMinIndex + 1 until pdfPageCount) {
-                val newTotalVisiblePortion =
-                    totalVisiblePortion + (pdfRender.pageLists[i].dimension.height)
-                if (newTotalVisiblePortion <= pdfRender.containerSize.height) {
-                    lastVisibleIndex = i
-                    totalVisiblePortion = newTotalVisiblePortion
-                } else {
-                    break
-                }
-            }
-            lastVisibleIndex
-        } ?: 0
-    }
-
+        get() = pagerState.currentPage + 1
     override val isScrolling: Boolean
-        get() = lazyListState.isScrollInProgress
+        get() = pagerState.isScrollInProgress
+
     override val TAG: String
         get() = "HorizontalVueReader"
 
@@ -88,8 +72,7 @@ class VerticalVueReaderState(
                 buildList {
                     add(resource)
                     add(it.importFile?.absolutePath ?: "NO_IMAGE")
-                    add(it.lazyListState.firstVisibleItemIndex)
-                    add(it.lazyListState.firstVisibleItemScrollOffset)
+                    add(it.pagerState.currentPage)
                     if (it.vueLoadState is VueLoadState.DocumentImporting)
                         add(it.vueLoadState)
                     else
@@ -103,13 +86,16 @@ class VerticalVueReaderState(
                     //Restore file path
                     importFile = if(it[1] != "NO_IMAGE") File(it[1] as String) else null
                     //Restore list state
-                    lazyListState = LazyListState(it[2] as Int, it[3] as Int)
+                    pagerState = VuePagerState(
+                        initialPage = it[2] as Int,
+                        initialPageOffsetFraction = 0F,
+                        updatedPageCount = {pdfPageCount})
                     //Restoring in case it was in importing state
-                    vueLoadState = it[4] as VueLoadState
+                    vueLoadState = it[3] as VueLoadState
                     //To resume importing on configuration change
-                    vueImportState = it[5] as VueImportState
+                    vueImportState = it[4] as VueImportState
                     //Restore document modified flag
-                    mDocumentModified = it[6] as Boolean
+                    mDocumentModified = it[5] as Boolean
                 }
             }
         )

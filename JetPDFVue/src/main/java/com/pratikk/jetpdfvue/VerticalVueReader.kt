@@ -7,6 +7,7 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.scaleIn
 import androidx.compose.animation.scaleOut
 import androidx.compose.animation.togetherWith
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -15,6 +16,9 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.requiredHeightIn
 import androidx.compose.foundation.layout.requiredWidthIn
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.PageSize
+import androidx.compose.foundation.pager.VerticalPager
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.collectAsState
@@ -33,29 +37,21 @@ import com.pratikk.jetpdfvue.state.VerticalVueReaderState
 import com.pratikk.jetpdfvue.state.VuePageState
 import com.pratikk.jetpdfvue.util.pinchToZoomAndDrag
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun VerticalVueReader(
     modifier: Modifier = Modifier,
     contentModifier: Modifier = Modifier,
     verticalVueReaderState: VerticalVueReaderState
 ) {
-    val density = LocalDensity.current
-    var boxHeight by remember {
-        mutableStateOf(0.dp)
-    }
-    val holderSize by remember {
-        mutableStateOf(IntSize(0,0))
-    }
     val vueRenderer = verticalVueReaderState.vueRenderer
-    LazyColumn(
-        modifier = modifier
-            .onSizeChanged {
-                boxHeight = with(density) { it.height.toDp() }
-            },
-        userScrollEnabled = false,
-        state = verticalVueReaderState.lazyListState,
-    ) {
-        items(vueRenderer!!.pageCount) { idx ->
+
+    if (vueRenderer != null)
+        VerticalPager(
+            modifier = modifier,
+            userScrollEnabled = false,
+            state = verticalVueReaderState.pagerState
+        ) { idx ->
             val pageContent by vueRenderer.pageLists[idx].stateFlow.collectAsState()
             DisposableEffect(key1 = Unit) {
                 vueRenderer.pageLists[idx].load()
@@ -66,20 +62,24 @@ fun VerticalVueReader(
             AnimatedContent(targetState = pageContent, label = "") {
                 when (it) {
                     is VuePageState.BlankState -> {
-                        BlankPage(modifier = contentModifier,width = holderSize.width, height = holderSize.height)
+                        BlankPage(
+                            modifier = contentModifier,
+                            width = verticalVueReaderState.containerSize!!.width,
+                            height = verticalVueReaderState.containerSize!!.height
+                        )
                     }
+
                     is VuePageState.LoadedState -> {
                         Image(
                             modifier = contentModifier
-                                .requiredHeightIn(min = boxHeight)
                                 .clipToBounds()
                                 .pinchToZoomAndDrag(),
                             bitmap = it.content.asImageBitmap(),
                             contentDescription = ""
                         )
                     }
+
                 }
             }
         }
-    }
 }

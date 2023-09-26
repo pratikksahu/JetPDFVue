@@ -16,6 +16,8 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.ArrowForward
+import androidx.compose.material.icons.filled.KeyboardArrowLeft
+import androidx.compose.material.icons.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.RotateLeft
 import androidx.compose.material.icons.filled.RotateRight
 import androidx.compose.material.icons.filled.Share
@@ -130,7 +132,7 @@ fun HorizontalSampleA(
                         }
                     }) {
                     Icon(
-                        imageVector = Icons.Filled.ArrowBack,
+                        imageVector = Icons.Filled.KeyboardArrowLeft,
                         contentDescription = "Previous",
                         tint = iconTint
                     )
@@ -186,7 +188,7 @@ fun HorizontalSampleA(
                         }
                     }) {
                     Icon(
-                        imageVector = Icons.Filled.ArrowForward,
+                        imageVector = Icons.Filled.KeyboardArrowRight,
                         contentDescription = "Next",
                         tint = iconTint
                     )
