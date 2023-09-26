@@ -12,6 +12,8 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
@@ -43,6 +45,7 @@ import androidx.compose.ui.unit.dp
 import com.pratikk.jetpackpdf.ui.theme.JetpackPDFTheme
 import com.pratikk.jetpdfvue.HorizontalVueReader
 import com.pratikk.jetpdfvue.VerticalVueReader
+import com.pratikk.jetpdfvue.VueSlider
 import com.pratikk.jetpdfvue.util.reduceSize
 import com.pratikk.jetpdfvue.state.VueLoadState
 import com.pratikk.jetpdfvue.state.VueResourceType
@@ -124,6 +127,7 @@ fun HorizontalPdfViewer() {
             }
 
             is VueLoadState.DocumentLoaded -> {
+
                 HorizontalVueReader(
                     modifier = Modifier.fillMaxSize(),
                     contentModifier = Modifier
@@ -158,24 +162,32 @@ fun HorizontalPdfViewer() {
                         )
                     }
                 }
-                Row(
-                    modifier = Modifier
-                        .align(Alignment.BottomCenter)
-                        .padding(horizontal = 8.dp, vertical = 12.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    IconButton(onClick = {
-                        horizontalVueReaderState.rotate(-90F)
-                    }) {
-                        Icon(imageVector = Icons.Filled.RotateLeft, contentDescription = "")
-                    }
-                    Spacer(modifier = Modifier.width(8.dp))
-                    IconButton(onClick = {
-                        horizontalVueReaderState.rotate(90F)
-                    }) {
-                        Icon(imageVector = Icons.Filled.RotateRight, contentDescription = "")
+                Column(Modifier
+                    .align(Alignment.BottomCenter)) {
+                    VueSlider(
+                        Modifier
+                            .padding(horizontal = 10.dp, vertical = 10.dp)
+                            .fillMaxWidth()
+                            .height(40.dp),horizontalVueReaderState)
+                    Row(
+                        modifier = Modifier
+                            .padding(horizontal = 8.dp, vertical = 12.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        IconButton(onClick = {
+                            horizontalVueReaderState.rotate(-90F)
+                        }) {
+                            Icon(imageVector = Icons.Filled.RotateLeft, contentDescription = "")
+                        }
+                        Spacer(modifier = Modifier.width(8.dp))
+                        IconButton(onClick = {
+                            horizontalVueReaderState.rotate(90F)
+                        }) {
+                            Icon(imageVector = Icons.Filled.RotateRight, contentDescription = "")
+                        }
                     }
                 }
+
             }
 
             is VueLoadState.DocumentLoading -> {
