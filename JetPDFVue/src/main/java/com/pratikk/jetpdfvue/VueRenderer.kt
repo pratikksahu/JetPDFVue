@@ -86,8 +86,8 @@ internal class VueRenderer(
 
         var isLoaded = false
 
-        fun load(refresh:Boolean = false) {
-            if (!isLoaded || refresh) {
+        fun load() {
+            if (!isLoaded) {
                 job = coroutineScope.launch {
                     mutex.withLock {
                         var newBitmap: Bitmap
