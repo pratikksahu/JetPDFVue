@@ -45,12 +45,12 @@ import androidx.compose.ui.unit.dp
 import com.pratikk.jetpackpdf.ui.theme.JetpackPDFTheme
 import com.pratikk.jetpdfvue.HorizontalVueReader
 import com.pratikk.jetpdfvue.VerticalVueReader
-import com.pratikk.jetpdfvue.VueSlider
-import com.pratikk.jetpdfvue.util.reduceSize
+import com.pratikk.jetpdfvue.VueHorizontalSlider
 import com.pratikk.jetpdfvue.state.VueLoadState
 import com.pratikk.jetpdfvue.state.VueResourceType
 import com.pratikk.jetpdfvue.state.rememberHorizontalVueReaderState
 import com.pratikk.jetpdfvue.state.rememberVerticalVueReaderState
+import com.pratikk.jetpdfvue.util.reduceSize
 import kotlinx.coroutines.launch
 
 class MainActivity : ComponentActivity() {
@@ -162,13 +162,17 @@ fun HorizontalPdfViewer() {
                         )
                     }
                 }
-                Column(Modifier
-                    .align(Alignment.BottomCenter)) {
-                    VueSlider(
-                        Modifier
+                Column(
+                    Modifier
+                        .align(Alignment.BottomCenter)
+                ) {
+                    VueHorizontalSlider(
+                        modifier = Modifier
                             .padding(horizontal = 10.dp, vertical = 10.dp)
                             .fillMaxWidth()
-                            .height(40.dp),horizontalVueReaderState)
+                            .height(40.dp),
+                        horizontalVueReaderState = horizontalVueReaderState
+                    )
                     Row(
                         modifier = Modifier
                             .padding(horizontal = 8.dp, vertical = 12.dp),
