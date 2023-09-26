@@ -77,7 +77,7 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    VerticalPreview()
+                    HorizontalPreview()
                 }
             }
         }
@@ -128,6 +128,6 @@ fun VerticalPreview(){
     val remoteImageLink = listOf("https://images.pexels.com/photos/943907/pexels-photo-943907.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2","https://images.freeimages.com/images/large-previews/7f3/path-1441068.jpg")
     val remoteImage =
         rememberVerticalVueReaderState(resource = VueResourceType.Remote(remoteImageLink[0]))
-    VerticalPdfViewer(verticalVueReaderState = assetReader)
+    VerticalPdfViewer(verticalVueReaderState = remoteImage)
 }
 
