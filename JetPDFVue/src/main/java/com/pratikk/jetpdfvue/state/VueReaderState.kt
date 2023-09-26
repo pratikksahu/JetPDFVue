@@ -50,6 +50,12 @@ abstract class VueReaderState(
 
     //Import State
     internal var vueImportState by mutableStateOf<VueImportState>(VueImportState.Ideal())
+    //Document modified flag
+    internal var mDocumentModified by mutableStateOf(false)
+    val isDocumentModified
+        get() = mDocumentModified
+
+    //Import Job
     internal var importJob:Job? = null
     //Renderer
     internal var vueRenderer: VueRenderer? = null
@@ -66,7 +72,7 @@ abstract class VueReaderState(
     val file: File?
         get() = mFile
 
-    var importFile: File? = null
+    internal var importFile: File? = null
 
     //Remote download status
     private var mLoadPercent by mutableStateOf(0)
@@ -82,10 +88,6 @@ abstract class VueReaderState(
     abstract val isScrolling: Boolean
     abstract suspend fun nextPage()
     abstract suspend fun prevPage()
-    fun close() {
-        vueRenderer?.close()
-        vueRenderer = null
-    }
 
     abstract fun load(
         context: Context,
@@ -366,6 +368,7 @@ abstract class VueReaderState(
                         if(isActive) {
                             initRenderer()
                             vueImportState = VueImportState.Ideal()
+                            mDocumentModified = true
                             importFile = null
                             importJob = null
                         }

@@ -1,19 +1,13 @@
 package com.pratikk.jetpdfvue.state
 
 import android.content.Context
-import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.lazy.LazyListState
-import androidx.compose.foundation.pager.PagerState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.Saver
 import androidx.compose.runtime.saveable.listSaver
 import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.IntSize
 import androidx.core.net.toUri
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.cancelAndJoin
 import java.io.File
 
 class HorizontalVueReaderState(
@@ -77,6 +71,7 @@ class HorizontalVueReaderState(
                     else
                         add(VueLoadState.DocumentLoading)
                     add(it.vueImportState)
+                    add(it.mDocumentModified)
                 }.toList()
             },
             restore = {
@@ -92,6 +87,8 @@ class HorizontalVueReaderState(
                     vueLoadState = it[3] as VueLoadState
                     //To resume importing on configuration change
                     vueImportState = it[4] as VueImportState
+                    //Restore document modified flag
+                    mDocumentModified = it[5] as Boolean
                 }
             }
         )
