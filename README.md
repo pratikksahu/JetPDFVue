@@ -3,7 +3,7 @@ PDF reader Android library based on Jetpack Compose
 
 ### License
 ```xml
-   Copyright [2022] [Pratik Sahu]
+   Copyright [2023] [Pratik Sahu]
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
