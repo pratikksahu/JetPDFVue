@@ -45,7 +45,9 @@ suspend fun addImageToPdf(
         if (imageFilePath.isNullOrEmpty() && bitmap == null)
             throw Exception("Image file or bitmap required")
         val pdfFile = File.createTempFile("temp", ".pdf")
-        File(pdfPath).copyTo(pdfFile, true)
+        val actualFile = File(pdfPath)
+        if(actualFile.exists() && actualFile.length() != 0L)
+            actualFile.copyTo(pdfFile, true)
         val pdfDocument = PdfDocument()
         val options = BitmapFactory.Options()
         val image = if (!imageFilePath.isNullOrEmpty()) BitmapFactory.decodeFile(
@@ -53,10 +55,7 @@ suspend fun addImageToPdf(
             options
         ) else bitmap!!
 
-        if (!pdfFile.exists()) {
-            if (pdfFile.parentFile?.exists() == false)
-                pdfFile.parentFile?.mkdirs()
-            pdfFile.createNewFile()
+        if (!actualFile.exists() || actualFile.length() == 0L){
             val pageInfo = PdfDocument.PageInfo.Builder(image.width, image.height, 1).create()
             val page = pdfDocument.startPage(pageInfo)
             val canvas = page.canvas
@@ -66,6 +65,10 @@ suspend fun addImageToPdf(
             val outputStream = FileOutputStream(pdfFile)
             pdfDocument.writeTo(outputStream)
             pdfDocument.close()
+            image.recycle()
+            if (isActive) {
+                pdfFile.copyTo(actualFile, true)
+            }
             return@withContext
         }
         val mrenderer = PdfRenderer(
@@ -125,7 +128,7 @@ suspend fun addImageToPdf(
         val outputStream = FileOutputStream(pdfFile)
         pdfDocument.writeTo(outputStream)
         if (isActive) {
-            pdfFile.copyTo(File(pdfPath), true)
+            pdfFile.copyTo(actualFile, true)
         }
         // Close the PDF document and PDF renderer
         pdfDocument.close()

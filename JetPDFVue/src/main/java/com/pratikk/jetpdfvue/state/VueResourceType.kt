@@ -7,6 +7,9 @@ import kotlinx.parcelize.Parcelize
 
 sealed class VueResourceType{
     @Parcelize
+    data object BlankDocument: VueResourceType(), Parcelable
+
+    @Parcelize
     data class Local(val uri: Uri) : VueResourceType(), Parcelable
 
     @Parcelize

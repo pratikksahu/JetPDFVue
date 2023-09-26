@@ -79,6 +79,7 @@ fun HorizontalPdfViewer() {
             "https://myreport.altervista.org/Lorem_Ipsum.pdf"
         )
     )
+
     val launcher = horizontalVueReaderState.getImportLauncher(interceptResult = {
         it.reduceSize()
     })
@@ -103,6 +104,14 @@ fun HorizontalPdfViewer() {
             )
         }
         when (horizontalVueReaderState.vueLoadState) {
+            is VueLoadState.NoDocument -> {
+                Button(onClick = {horizontalVueReaderState.launchImportIntent(
+                    context = context,
+                    launcher = launcher
+                )}) {
+                    Text(text = "Import Document")
+                }
+            }
             is VueLoadState.DocumentError -> {
                 Column {
                     Text(text = "Error:  ${horizontalVueReaderState.vueLoadState.getErrorMessage}")
@@ -142,7 +151,7 @@ fun HorizontalPdfViewer() {
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
-                        text = "${horizontalVueReaderState.currentPage} of ${horizontalVueReaderState.pdfPageCount}",
+                        text = "${horizontalVueReaderState.currentPage} of ${horizontalVueReaderState.pdfPageCount}\n${horizontalVueReaderState.isDocumentModified}",
                         modifier = Modifier
                             .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.38f))
                             .padding(10.dp)
@@ -236,6 +245,9 @@ fun VerticalPdfViewer() {
         contentAlignment = Alignment.Center
     ) {
         when (verticalVueReaderState.vueLoadState) {
+            is VueLoadState.NoDocument -> {
+
+            }
             is VueLoadState.DocumentError -> {
                 Column {
                     Text(text = "Error:  ${verticalVueReaderState.vueLoadState.getErrorMessage}")

@@ -7,6 +7,9 @@ sealed class VueLoadState{
     val getErrorMessage
         get() = if(this is DocumentError) error?.message.toString() else null
     @Parcelize
+    object NoDocument : VueLoadState(),Parcelable
+
+    @Parcelize
     object DocumentLoading : VueLoadState(),Parcelable
     @Parcelize
     object DocumentImporting : VueLoadState(),Parcelable

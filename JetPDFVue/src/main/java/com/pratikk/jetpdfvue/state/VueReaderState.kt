@@ -108,15 +108,30 @@ abstract class VueReaderState(
             Log.d(TAG,"Cannot load, importing document")
             return
         }
-        vueLoadState = VueLoadState.DocumentLoading
+
+        vueLoadState = if(vueResource is VueResourceType.BlankDocument)
+            VueLoadState.NoDocument
+        else
+            VueLoadState.DocumentLoading
+
         mLoadPercent = 0
         when (vueResource) {
+            is VueResourceType.BlankDocument -> {
+                coroutineScope.launch(Dispatchers.IO){
+                    runCatching {
+                        val blankFile = File(context.filesDir, generateFileName())
+                        mFile = blankFile
+                    }.onFailure {
+                        vueLoadState = VueLoadState.DocumentError(it)
+                    }
+                }
+            }
             is VueResourceType.Asset -> {
                 coroutineScope.launch(Dispatchers.IO) {
                     runCatching {
                         val bufferSize = 8192
                         val inputStream = context.resources.openRawResource(vueResource.assetId)
-                        val outFile = File(context.cacheDir, generateFileName())
+                        val outFile = File(context.filesDir, generateFileName())
                         inputStream.use { input ->
                             outFile.outputStream().use { output ->
                                 var data = ByteArray(bufferSize)
@@ -128,7 +143,7 @@ abstract class VueReaderState(
                                 }
                             }
                         }
-                        mFile = file
+                        mFile = outFile
                         initRenderer()
                     }.onFailure {
                         vueLoadState = VueLoadState.DocumentError(it)
@@ -276,7 +291,10 @@ abstract class VueReaderState(
                     val uri = it.data?.data
                     vueImportState = VueImportState.Imported(uri)
                 } else {
-                    initRenderer()
+                    if(vueResource !is VueResourceType.BlankDocument)
+                        initRenderer()
+                    else
+                        vueLoadState = VueLoadState.NoDocument
                 }
             }
         )
