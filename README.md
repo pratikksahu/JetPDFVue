@@ -1,6 +1,6 @@
 # JetPDFVue [![](https://jitpack.io/v/pratikksahu/JetPDFVue.svg)](https://jitpack.io/#pratikksahu/JetPDFVue)
 # App Description
-JetPDFVue is a PDF library to **Create,Modify,View PDF** written in Jetpack Compose. This was created using [PDFRenderer](https://developer.android.com/reference/android/graphics/pdf/PdfRenderer) and [PDFDocument](https://developer.android.com/reference/android/graphics/pdf/PdfDocument). The library supports both Horizontal and Vertical viewing.
+JetPDFVue is a library to **Create,Modify,View PDF** written in Jetpack Compose. This was created using [PDFRenderer](https://developer.android.com/reference/android/graphics/pdf/PdfRenderer) and [PDFDocument](https://developer.android.com/reference/android/graphics/pdf/PdfDocument). The library supports both Horizontal and Vertical viewing.
 
 # Examples
 1. Horizontal [Example 1](app/src/main/java/com/pratikk/jetpackpdf/horizontalSamples/HorizontalSampleA.kt) [Example 2](app/src/main/java/com/pratikk/jetpackpdf/horizontalSamples/HorizontalSampleB.kt)
