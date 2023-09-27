@@ -36,7 +36,7 @@ import kotlin.math.sin
  * Util function to add page to pdf
  * page can be a file or a bitmap
  * */
-suspend fun addImageToPdf(
+internal suspend fun addImageToPdf(
     imageFilePath: String? = null,
     bitmap: Bitmap? = null,
     pdfPath: String
@@ -140,7 +140,7 @@ suspend fun addImageToPdf(
  * Util function to merge two pdf
  * imported pdf pages will get appended to old pdf
  * */
-suspend fun mergePdf(oldPdfPath: String, importedPdfPath: String) {
+internal suspend fun mergePdf(oldPdfPath: String, importedPdfPath: String) {
     withContext(Dispatchers.IO) {
         val tempOldPdf = File.createTempFile("temp_old", ".pdf")
         val importedPdf = File(importedPdfPath)
@@ -236,7 +236,7 @@ suspend fun mergePdf(oldPdfPath: String, importedPdfPath: String) {
 }
 
 @OptIn(ExperimentalFoundationApi::class)
-fun Modifier.pinchToZoomAndDrag() = composed {
+internal fun Modifier.pinchToZoomAndDrag() = composed {
     val angle by remember { mutableStateOf(0f) }
     var zoom by remember { mutableStateOf(1f) }
     var offsetX by remember { mutableStateOf(0f) }
