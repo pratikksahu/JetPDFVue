@@ -4,7 +4,21 @@ JetPDFVue is a PDF library **Create,Modify,View** written in Jetpack Compose. Th
 
 # Examples
 1. Horizontal [Example 1](app/src/main/java/com/pratikk/jetpackpdf/horizontalSamples/HorizontalSampleA.kt) [Example 2](app/src/main/java/com/pratikk/jetpackpdf/horizontalSamples/HorizontalSampleB.kt)
+
+
+https://github.com/pratikksahu/JetPDFVue/assets/58379829/4723eba0-825e-4df0-8e2c-93a6187d013d
+
+
+
+https://github.com/pratikksahu/JetPDFVue/assets/58379829/d153cc40-dfa4-47a3-aa25-8c3ccb00d503
+
+
+
+
 2. Vertical [Example 1](app/src/main/java/com/pratikk/jetpackpdf/verticalSamples/VerticalSampleA.kt)
+
+[VerticalSampleA.webm](https://github.com/pratikksahu/JetPDFVue/assets/58379829/b5013cad-c0c0-4344-b403-5b411a86a62b)
+
 
 Remote sources might not work sometimes because files are hosted on google drive
 # Features
