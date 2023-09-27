@@ -7,8 +7,12 @@ import kotlinx.parcelize.Parcelize
 import java.io.File
 
 sealed class VueResourceType{
+
+    /**
+     * @param uri If null then internally an empty file would be create otherwise param uri will be used
+     * */
     @Parcelize
-    data object BlankDocument: VueResourceType(), Parcelable
+    data class BlankDocument(val uri:Uri? = null): VueResourceType(), Parcelable
 
     @Parcelize
     data class Local(val uri: Uri) : VueResourceType(), Parcelable

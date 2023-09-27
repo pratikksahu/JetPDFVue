@@ -16,6 +16,7 @@ import com.pratikk.jetpdfvue.state.VueResourceType
 import com.pratikk.jetpdfvue.state.rememberHorizontalVueReaderState
 import com.pratikk.jetpdfvue.state.rememberVerticalVueReaderState
 import com.pratikk.jetpdfvue.util.toFile
+import java.io.File
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -37,9 +38,11 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun HorizontalPreview(){
     val context = LocalContext.current
+    val blankReader = rememberHorizontalVueReaderState(
+        resource = VueResourceType.BlankDocument())
+
     val assetReader = rememberHorizontalVueReaderState(
-        resource = VueResourceType.Asset(R.raw.lorem_ipsum)
-    )
+        resource = VueResourceType.Asset(R.raw.lorem_ipsum))
     val localBase64Reader = rememberHorizontalVueReaderState(
         resource = VueResourceType.Base64(
             context.assets.open("lorem_ipsum_base64.txt").let { inputStream ->
@@ -55,7 +58,7 @@ fun HorizontalPreview(){
     val remoteImageLink = listOf("https://images.pexels.com/photos/943907/pexels-photo-943907.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2","https://images.freeimages.com/images/large-previews/7f3/path-1441068.jpg")
     val remoteImage =
         rememberHorizontalVueReaderState(resource = VueResourceType.Remote(remoteImageLink[0]))
-    HorizontalPdfViewer(horizontalVueReaderState = assetReader)
+    HorizontalPdfViewer(horizontalVueReaderState = blankReader)
 }
 @Composable
 fun VerticalPreview(){

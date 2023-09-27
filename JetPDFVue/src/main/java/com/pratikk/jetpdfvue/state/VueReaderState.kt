@@ -103,8 +103,12 @@ abstract class VueReaderState(
         loadCustomResource: (suspend CoroutineScope.() -> File)?
     ) {
         if (vueLoadState is VueLoadState.DocumentImporting) {
-            require(vueResource is VueResourceType.Local)
+            require(vueResource is VueResourceType.Local || vueResource is VueResourceType.BlankDocument)
+            if(vueResource is VueResourceType.Local)
                 mFile = vueResource.uri.toFile()
+            if(vueResource is VueResourceType.BlankDocument)
+                mFile = vueResource.uri!!.toFile()
+            requireNotNull(value = mFile, lazyMessage = {"Could not restore file"})
             Log.d(TAG,"Cannot load, importing document")
             return
         }
@@ -120,7 +124,7 @@ abstract class VueReaderState(
                 coroutineScope.launch(Dispatchers.IO){
                     runCatching {
                         val blankFile = File(context.filesDir, generateFileName())
-                        mFile = blankFile
+                        mFile = vueResource.uri?.toFile() ?: blankFile
                     }.onFailure {
                         vueLoadState = VueLoadState.DocumentError(it)
                     }

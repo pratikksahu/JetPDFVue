@@ -1,7 +1,6 @@
 package com.pratikk.jetpdfvue.state
 
 import android.content.Context
-import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.saveable.Saver
 import androidx.compose.runtime.saveable.listSaver
@@ -20,10 +19,11 @@ class VerticalVueReaderState(
         initialPageOffsetFraction = 0f,
         updatedPageCount = { pdfPageCount })
 
-    override suspend fun nextPage(){
+    override suspend fun nextPage() {
         pagerState.animateScrollToPage(pagerState.currentPage + 1)
     }
-    override suspend fun prevPage(){
+
+    override suspend fun prevPage() {
         pagerState.animateScrollToPage(pagerState.currentPage - 1)
     }
 
@@ -63,15 +63,19 @@ class VerticalVueReaderState(
         val Saver: Saver<VerticalVueReaderState, *> = listSaver(
             save = {
                 it.importJob?.cancel()
-                val resource = it.file?.let { file ->
-                    VueResourceType.Local(
-                        file.toUri()
-                    )
-                } ?: it.vueResource
+                val resource =
+                        it.file?.let { file ->
+                            if (it.vueResource is VueResourceType.BlankDocument)
+                                VueResourceType.BlankDocument(file.toUri())
+                            else
+                                VueResourceType.Local(
+                                    file.toUri()
+                                )
+                        } ?: it.vueResource
 
                 buildList {
                     add(resource)
-                    add(it.importFile?.absolutePath ?: "NO_IMAGE")
+                    add(it.importFile?.absolutePath)
                     add(it.pagerState.currentPage)
                     if (it.vueLoadState is VueLoadState.DocumentImporting)
                         add(it.vueLoadState)
@@ -85,12 +89,12 @@ class VerticalVueReaderState(
             restore = {
                 VerticalVueReaderState(it[0] as VueResourceType).apply {
                     //Restore file path
-                    importFile = if(it[1] != "NO_IMAGE") File(it[1] as String) else null
+                    importFile = if (it[1] != null) File(it[1] as String) else null
                     //Restore list state
                     pagerState = VuePagerState(
                         initialPage = it[2] as Int,
                         initialPageOffsetFraction = 0F,
-                        updatedPageCount = {pdfPageCount})
+                        updatedPageCount = { pdfPageCount })
                     //Restoring in case it was in importing state
                     vueLoadState = it[3] as VueLoadState
                     //To resume importing on configuration change
@@ -108,7 +112,7 @@ class VerticalVueReaderState(
 @Composable
 fun rememberVerticalVueReaderState(
     resource: VueResourceType,
-    cache:Int = 0
+    cache: Int = 0
 ): VerticalVueReaderState {
     return rememberSaveable(saver = VerticalVueReaderState.Saver) {
         VerticalVueReaderState(resource).apply { this.cache = cache }
