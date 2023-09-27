@@ -18,7 +18,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.IntSize
 import com.pratikk.jetpdfvue.state.VerticalVueReaderState
 import com.pratikk.jetpdfvue.state.VueLoadState
-import com.pratikk.jetpdfvue.util.reduceSize
+import com.pratikk.jetpdfvue.util.compressImageToThreshold
 import kotlinx.coroutines.launch
 
 @Composable
@@ -27,7 +27,7 @@ fun VerticalPdfViewer(verticalVueReaderState: VerticalVueReaderState) {
     val scope = rememberCoroutineScope()
 
     val launcher = verticalVueReaderState.getImportLauncher(interceptResult = {
-        it.reduceSize()
+        it.compressImageToThreshold(2)
     })
 
     BoxWithConstraints(

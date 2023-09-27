@@ -24,11 +24,11 @@ import androidx.core.net.toUri
 import com.pratikk.jetpdfvue.VueRenderer
 import com.pratikk.jetpdfvue.util.addImageToPdf
 import com.pratikk.jetpdfvue.util.copyFile
-import com.pratikk.jetpdfvue.generateFileName
+import com.pratikk.jetpdfvue.util.generateFileName
 import com.pratikk.jetpdfvue.util.getFile
 import com.pratikk.jetpdfvue.util.mergePdf
 import com.pratikk.jetpdfvue.network.vueDownload
-import com.pratikk.jetpdfvue.toBase64File
+import com.pratikk.jetpdfvue.util.toBase64File
 import com.pratikk.jetpdfvue.util.share
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.CoroutineStart

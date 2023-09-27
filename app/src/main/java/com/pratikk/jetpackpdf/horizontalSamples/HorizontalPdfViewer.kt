@@ -18,7 +18,6 @@ import androidx.compose.ui.unit.IntSize
 import com.pratikk.jetpdfvue.state.HorizontalVueReaderState
 import com.pratikk.jetpdfvue.state.VueLoadState
 import com.pratikk.jetpdfvue.util.compressImageToThreshold
-import com.pratikk.jetpdfvue.util.reduceSize
 import kotlinx.coroutines.launch
 
 @Composable
