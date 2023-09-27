@@ -72,7 +72,8 @@ fun VerticalPreview(){
             context.assets.open("lorem_ipsum_base64.txt").let { inputStream ->
                 inputStream.toFile(extension = ".txt")
             }
-        )
+        ),
+        cache = 3
     )
     val remoteBase64Reader =
         rememberVerticalVueReaderState(resource = VueResourceType.RemoteBase64("https://drive.google.com/uc?export=download&id=1-mmdJ2K2x3MDgTqmFd8sMpW3zIFyNYY-"))
