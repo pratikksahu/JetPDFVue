@@ -25,6 +25,7 @@ Remote sources might not work sometimes because files are hosted on google drive
    - `InputStream.toFile(extension: String)`: Convert any input stream to a file.
 
 # Get Started
+## Integrate
 **Step 1.** Add `INTERNET` permissions on your AndroidManifest.xml
 
 ```xml
@@ -42,6 +43,7 @@ dependencies {
         implementation("com.github.pratikksahu:JetPDFVue:1.0.3")
 }
 ```
+## How to use
 **Step 4.** You can use the library by creating the state in a Composable 
 #### This is for horizontal viewing
 
