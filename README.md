@@ -155,7 +155,29 @@ is VueLoadState.DocumentLoaded -> {
                     })
             })
     ```
+# Import PDF and Images
+### 1. Create launcher
+```kotlin
+ val launcher = horizontalVueReaderState.getImportLauncher(interceptResult = {file ->
+        // This lambda will be invoked only when imported type is an image
+        // Use this to reduce file size,rotate or transform as per your need
+        file
+        .rotateImageIfNeeded()
+        .compressImageToThreshold(2)
+    })
+```
+### 2. Launch Import Intent
+```kotlin
+horizontalVueReaderState.launchImportIntent(
+                        context = context,
+                        launcher = launcher
+                    )
+```
 
+# Share PDF
+```kotlin
+horizontalVueReaderState.sharePDF(context)
+```
 # Feature Implementations
 
 ### 1.  Page rotation
