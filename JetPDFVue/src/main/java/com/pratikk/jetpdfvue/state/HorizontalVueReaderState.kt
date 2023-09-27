@@ -63,7 +63,7 @@ class HorizontalVueReaderState(
                 it.importJob?.cancel()
                 val resource =
                     it.file?.let { file ->
-                        if (it.vueResource is VueResourceType.BlankDocument)
+                        if (it.vueResource is VueResourceType.BlankDocument && !it.isDocumentModified)
                             VueResourceType.BlankDocument(file.toUri())
                         else
                             VueResourceType.Local(
