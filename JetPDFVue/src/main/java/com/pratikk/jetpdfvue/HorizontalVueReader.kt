@@ -16,6 +16,7 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -40,6 +41,11 @@ fun HorizontalVueReader(
     horizontalVueReaderState: HorizontalVueReaderState,
 ) {
     val vueRenderer = horizontalVueReaderState.vueRenderer
+    val currentPage = horizontalVueReaderState.currentPage
+    if (horizontalVueReaderState.cache != 0)
+        LaunchedEffect(key1 = currentPage, block = {
+            vueRenderer?.loadWithCache(currentPage)
+        })
     if (vueRenderer != null)
         HorizontalPager(
             modifier = modifier,
@@ -47,12 +53,13 @@ fun HorizontalVueReader(
             state = horizontalVueReaderState.pagerState
         ) { idx ->
             val pageContent by vueRenderer.pageLists[idx].stateFlow.collectAsState()
-            DisposableEffect(key1 = Unit) {
-                vueRenderer.pageLists[idx].load()
-                onDispose {
-                    vueRenderer.pageLists[idx].recycle()
+            if (horizontalVueReaderState.cache == 0)
+                DisposableEffect(key1 = Unit) {
+                    vueRenderer.pageLists[idx].load()
+                    onDispose {
+                        vueRenderer.pageLists[idx].recycle()
+                    }
                 }
-            }
             AnimatedContent(targetState = pageContent, label = "") {
                 when (it) {
                     is VuePageState.BlankState -> {

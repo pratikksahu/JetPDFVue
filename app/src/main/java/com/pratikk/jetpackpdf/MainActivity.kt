@@ -111,7 +111,8 @@ fun HorizontalPreview(){
 fun VerticalPreview(){
     val context = LocalContext.current
     val assetReader = rememberVerticalVueReaderState(
-        resource = VueResourceType.Asset(R.raw.lorem_ipsum)
+        resource = VueResourceType.Asset(R.raw.lorem_ipsum),
+        cache = 3
     )
     val localBase64Reader = rememberVerticalVueReaderState(
         resource = VueResourceType.Base64(
@@ -128,6 +129,6 @@ fun VerticalPreview(){
     val remoteImageLink = listOf("https://images.pexels.com/photos/943907/pexels-photo-943907.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2","https://images.freeimages.com/images/large-previews/7f3/path-1441068.jpg")
     val remoteImage =
         rememberVerticalVueReaderState(resource = VueResourceType.Remote(remoteImageLink[0]))
-    VerticalPdfViewer(verticalVueReaderState = remoteImage)
+    VerticalPdfViewer(verticalVueReaderState = assetReader)
 }
 

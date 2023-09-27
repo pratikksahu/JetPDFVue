@@ -79,6 +79,7 @@ class VerticalVueReaderState(
                         add(VueLoadState.DocumentLoading)
                     add(it.vueImportState)
                     add(it.mDocumentModified)
+                    add(it.cache)
                 }.toList()
             },
             restore = {
@@ -96,6 +97,8 @@ class VerticalVueReaderState(
                     vueImportState = it[4] as VueImportState
                     //Restore document modified flag
                     mDocumentModified = it[5] as Boolean
+                    //Restore cache value
+                    cache = it[6] as Int
                 }
             }
         )
@@ -105,8 +108,9 @@ class VerticalVueReaderState(
 @Composable
 fun rememberVerticalVueReaderState(
     resource: VueResourceType,
+    cache:Int = 0
 ): VerticalVueReaderState {
     return rememberSaveable(saver = VerticalVueReaderState.Saver) {
-        VerticalVueReaderState(resource)
+        VerticalVueReaderState(resource).apply { this.cache = cache }
     }
 }

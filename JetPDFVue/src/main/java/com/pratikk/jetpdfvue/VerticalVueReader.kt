@@ -21,6 +21,7 @@ import androidx.compose.foundation.pager.PageSize
 import androidx.compose.foundation.pager.VerticalPager
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -45,7 +46,11 @@ fun VerticalVueReader(
     verticalVueReaderState: VerticalVueReaderState
 ) {
     val vueRenderer = verticalVueReaderState.vueRenderer
-
+    val currentPage = verticalVueReaderState.currentPage
+    if (verticalVueReaderState.cache != 0)
+        LaunchedEffect(key1 = currentPage, block = {
+            vueRenderer?.loadWithCache(currentPage)
+        })
     if (vueRenderer != null)
         VerticalPager(
             modifier = modifier,
@@ -53,12 +58,13 @@ fun VerticalVueReader(
             state = verticalVueReaderState.pagerState
         ) { idx ->
             val pageContent by vueRenderer.pageLists[idx].stateFlow.collectAsState()
-            DisposableEffect(key1 = Unit) {
-                vueRenderer.pageLists[idx].load()
-                onDispose {
-                    vueRenderer.pageLists[idx].recycle()
+            if (verticalVueReaderState.cache == 0)
+                DisposableEffect(key1 = Unit) {
+                    vueRenderer.pageLists[idx].load()
+                    onDispose {
+                        vueRenderer.pageLists[idx].recycle()
+                    }
                 }
-            }
             AnimatedContent(targetState = pageContent, label = "") {
                 when (it) {
                     is VuePageState.BlankState -> {

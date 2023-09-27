@@ -10,6 +10,7 @@ import android.net.Uri
 import androidx.core.content.FileProvider
 import java.io.File
 import java.io.FileOutputStream
+import java.io.IOException
 
 /**
  * Get file from Uri
@@ -36,6 +37,7 @@ internal fun Uri.getFile(mContext: Context): File {
     }
     return file
 }
+
 /**
  * Copy Uri to another Uri
  * */
@@ -53,6 +55,7 @@ internal fun Uri.copyFile(mContext: Context, pathTo: Uri) {
         }
     }
 }
+
 /**
  * Set the orientation to portrait
  * Must be called before resizing because after that the exif data would be lost
@@ -152,5 +155,53 @@ fun File.share(context: Context) {
                 "Share via"
             )
         )
+    }
+}
+
+// Function to compress an image and return its size
+internal fun File.compressImage(quality: Int): Long {
+    try {
+        val bitmap = BitmapFactory.decodeFile(absolutePath)
+
+        val outputStream = FileOutputStream(this)
+        // Compress the bitmap with the specified quality (0-100)
+        if (absolutePath.contains("jpg") || absolutePath.contains("jpeg") || absolutePath.contains("JPG") || absolutePath.contains(
+                "JPEG"
+            )
+        )
+            bitmap.compress(Bitmap.CompressFormat.JPEG, quality, outputStream)
+        else
+            bitmap.compress(Bitmap.CompressFormat.PNG, quality, outputStream)
+
+        outputStream.flush()
+        outputStream.close()
+
+        // Return the size of the compressed image
+        return length()
+    } catch (e: IOException) {
+        e.printStackTrace()
+    }
+    return 0
+}
+
+// Function to recursively compress an image until its size is around 2MB or less
+fun File.compressImageToThreshold(threshold: Int) {
+    if (exists()) {
+        val tempFile = File.createTempFile("tempCompress", ".$extension")
+        copyTo(tempFile, true)
+        var quality = 100 // Initial quality setting
+        var currentSize = tempFile.length()
+        println("Before compress $currentSize")
+        while (currentSize > (threshold * 1024 * 1024)) { // 2MB in bytes
+            quality -= 5 // Reduce quality in steps of 5
+            if (quality < 0) {
+                break // Don't reduce quality below 0
+            }
+
+            // Compress the image and get its new size
+            currentSize = tempFile.compressImage(quality)
+        }
+        println("After compress $currentSize")
+        tempFile.copyTo(this,true)
     }
 }

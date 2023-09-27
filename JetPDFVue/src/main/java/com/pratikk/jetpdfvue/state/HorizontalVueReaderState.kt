@@ -72,6 +72,7 @@ class HorizontalVueReaderState(
                         add(VueLoadState.DocumentLoading)
                     add(it.vueImportState)
                     add(it.mDocumentModified)
+                    add(it.cache)
                 }.toList()
             },
             restore = {
@@ -89,6 +90,8 @@ class HorizontalVueReaderState(
                     vueImportState = it[4] as VueImportState
                     //Restore document modified flag
                     mDocumentModified = it[5] as Boolean
+                    //Restore cache value
+                    cache = it[6] as Int
                 }
             }
         )
@@ -98,8 +101,9 @@ class HorizontalVueReaderState(
 @Composable
 fun rememberHorizontalVueReaderState(
     resource: VueResourceType,
+    cache:Int = 0
 ): HorizontalVueReaderState {
     return rememberSaveable(saver = HorizontalVueReaderState.Saver) {
-        HorizontalVueReaderState(resource)
+        HorizontalVueReaderState(resource).apply { this.cache = cache }
     }
 }

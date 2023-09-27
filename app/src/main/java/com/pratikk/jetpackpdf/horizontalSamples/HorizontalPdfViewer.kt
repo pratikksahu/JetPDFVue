@@ -17,6 +17,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.IntSize
 import com.pratikk.jetpdfvue.state.HorizontalVueReaderState
 import com.pratikk.jetpdfvue.state.VueLoadState
+import com.pratikk.jetpdfvue.util.compressImageToThreshold
 import com.pratikk.jetpdfvue.util.reduceSize
 import kotlinx.coroutines.launch
 
@@ -26,7 +27,7 @@ fun HorizontalPdfViewer(horizontalVueReaderState: HorizontalVueReaderState) {
     val scope = rememberCoroutineScope()
 
     val launcher = horizontalVueReaderState.getImportLauncher(interceptResult = {
-        it.reduceSize()
+        it.compressImageToThreshold(2)
     })
 
     BoxWithConstraints(
@@ -83,7 +84,7 @@ fun HorizontalPdfViewer(horizontalVueReaderState: HorizontalVueReaderState) {
             }
 
             is VueLoadState.DocumentLoaded -> {
-                HorizontalSampleA(horizontalVueReaderState = horizontalVueReaderState) {
+                HorizontalSampleB(horizontalVueReaderState = horizontalVueReaderState) {
                     horizontalVueReaderState.launchImportIntent(
                         context = context,
                         launcher = launcher

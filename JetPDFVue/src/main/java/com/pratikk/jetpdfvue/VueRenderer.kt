@@ -20,13 +20,13 @@ import kotlinx.coroutines.sync.withLock
 internal class VueRenderer(
     private val fileDescriptor: ParcelFileDescriptor,
     val containerSize: IntSize,
-    val isPortrait: Boolean
+    val isPortrait: Boolean,
+    val cache:Int,
 ) {
     private val pdfRenderer = PdfRenderer(fileDescriptor)
     val pageCount get() = pdfRenderer.pageCount
     private val mutex: Mutex = Mutex()
     private val coroutineScope = CoroutineScope(Dispatchers.Default + SupervisorJob())
-
     val pageLists: List<Page> = List(pdfRenderer.pageCount) {
         Page(
             mutex = mutex,
@@ -46,6 +46,20 @@ internal class VueRenderer(
             }
             pdfRenderer.close()
             fileDescriptor.close()
+        }
+    }
+
+    fun loadWithCache(currentPage: Int) {
+        val cacheRange = (((currentPage - cache).coerceIn(0, currentPage))..((currentPage + cache).coerceIn(
+            currentPage,
+            pageCount
+        )))
+
+        pageLists.forEachIndexed { index, page ->
+            if(cacheRange.contains(index))
+                page.load()
+            else
+                page.recycle()
         }
     }
 

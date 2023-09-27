@@ -57,6 +57,8 @@ abstract class VueReaderState(
     internal var importJob:Job? = null
     //Renderer
     internal var vueRenderer: VueRenderer? = null
+    //Load with cache
+    var cache:Int = 0
 
     //Container size
     internal var containerSize: IntSize? = null
@@ -243,7 +245,8 @@ abstract class VueReaderState(
                 ParcelFileDescriptor.MODE_READ_ONLY
             ),
             containerSize = containerSize!!,
-            isPortrait = isPortrait
+            isPortrait = isPortrait,
+            cache = cache
         )
         vueLoadState = VueLoadState.DocumentLoaded
     }
