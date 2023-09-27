@@ -133,15 +133,36 @@ is VueLoadState.DocumentLoaded -> {
             }
 ```
 # [Resource Type](JetPDFVue/src/main/java/com/pratikk/jetpdfvue/state/VueResourceType.kt)
-- `Remote`
-    1. Base64
-    2. PDF
-    3. Image
-- `Local`
-    1. Base64
-    2. PDF
-    3. Asset
-- `Custom`
+### Remote
+1. Base64
+```kotlin
+rememberHorizontalVueReaderState(resource = VueResourceType.RemoteBase64("https://drive.google.com/uc?export=download&id=1-mmdJ2K2x3MDgTqmFd8sMpW3zIFyNYY-"))
+```
+2. PDF
+```kotlin
+rememberHorizontalVueReaderState(resource = VueResourceType.Remote("https://drive.google.com/uc?export=download&id=1DSA7cmFzqCtTsHhlB0xdYJ6UweuC8IOz"))
+```
+3. Image
+```kotlin
+rememberHorizontalVueReaderState(resource = VueResourceType.Remote("InsertyYourImageLink.com"))
+```
+### Local
+1. Base64
+```kotlin
+rememberHorizontalVueReaderState(
+        resource = VueResourceType.Base64(
+            context.assets.open("lorem_ipsum_base64.txt").let { inputStream ->
+                inputStream.toFile(extension = ".txt")
+            }
+        )
+    )
+```
+2. Asset
+```kotlin
+rememberHorizontalVueReaderState(
+        resource = VueResourceType.Asset(R.raw.lorem_ipsum))
+```
+### Custom
     Any network request or transformation can be done in this scope
     ```kotlin
     LaunchedEffect(key1 = Unit, block = {
