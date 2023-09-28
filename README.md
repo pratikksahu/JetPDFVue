@@ -178,7 +178,7 @@ rememberHorizontalVueReaderState(
 ```
 ### Custom
     Any network request or transformation can be done in this scope
-    ```kotlin
+```kotlin
     LaunchedEffect(key1 = Unit, block = {
                 horizontalVueReaderState.load(
                     context = context, 
@@ -189,7 +189,7 @@ rememberHorizontalVueReaderState(
                         networkCall() // Should return a file
                     })
             })
-    ```
+```
 # Import PDF and Images
 ### 1. Create launcher
 ```kotlin
