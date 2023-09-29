@@ -1,10 +1,24 @@
 # JetPDFVue [![](https://jitpack.io/v/pratikksahu/JetPDFVue.svg)](https://jitpack.io/#pratikksahu/JetPDFVue)
 # App Description
-JetPDFVue is a PDF library **Create,Modify,View** written in Jetpack Compose. This was created using [PDFRenderer](https://developer.android.com/reference/android/graphics/pdf/PdfRenderer) and [PDFDocument](https://developer.android.com/reference/android/graphics/pdf/PdfDocument). The library supports both Horizontal and Vertical viewing.
+JetPDFVue is a library to **Create,Modify,View PDF** written in Jetpack Compose. This was created using [PDFRenderer](https://developer.android.com/reference/android/graphics/pdf/PdfRenderer) and [PDFDocument](https://developer.android.com/reference/android/graphics/pdf/PdfDocument). The library supports both Horizontal and Vertical viewing.
 
 # Examples
 1. Horizontal [Example 1](app/src/main/java/com/pratikk/jetpackpdf/horizontalSamples/HorizontalSampleA.kt) [Example 2](app/src/main/java/com/pratikk/jetpackpdf/horizontalSamples/HorizontalSampleB.kt)
+
+
+https://github.com/pratikksahu/JetPDFVue/assets/58379829/4723eba0-825e-4df0-8e2c-93a6187d013d
+
+
+
+https://github.com/pratikksahu/JetPDFVue/assets/58379829/d153cc40-dfa4-47a3-aa25-8c3ccb00d503
+
+
+
+
 2. Vertical [Example 1](app/src/main/java/com/pratikk/jetpackpdf/verticalSamples/VerticalSampleA.kt)
+
+[VerticalSampleA.webm](https://github.com/pratikksahu/JetPDFVue/assets/58379829/b5013cad-c0c0-4344-b403-5b411a86a62b)
+
 
 Remote sources might not work sometimes because files are hosted on google drive
 # Features
@@ -164,7 +178,7 @@ rememberHorizontalVueReaderState(
 ```
 ### Custom
     Any network request or transformation can be done in this scope
-    ```kotlin
+```kotlin
     LaunchedEffect(key1 = Unit, block = {
                 horizontalVueReaderState.load(
                     context = context, 
@@ -175,7 +189,7 @@ rememberHorizontalVueReaderState(
                         networkCall() // Should return a file
                     })
             })
-    ```
+```
 # Import PDF and Images
 ### 1. Create launcher
 ```kotlin
