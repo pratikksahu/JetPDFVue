@@ -22,14 +22,15 @@ import androidx.core.content.FileProvider
 import androidx.core.net.toFile
 import androidx.core.net.toUri
 import com.pratikk.jetpdfvue.VueRenderer
+import com.pratikk.jetpdfvue.network.vueDownload
 import com.pratikk.jetpdfvue.util.addImageToPdf
 import com.pratikk.jetpdfvue.util.copyFile
 import com.pratikk.jetpdfvue.util.generateFileName
 import com.pratikk.jetpdfvue.util.getFile
 import com.pratikk.jetpdfvue.util.mergePdf
-import com.pratikk.jetpdfvue.network.vueDownload
-import com.pratikk.jetpdfvue.util.toBase64File
 import com.pratikk.jetpdfvue.util.share
+import com.pratikk.jetpdfvue.util.toBase64File
+import com.pratikk.jetpdfvue.util.toFile
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.Dispatchers
@@ -133,32 +134,25 @@ abstract class VueReaderState(
             is VueResourceType.Asset -> {
                 coroutineScope.launch(Dispatchers.IO) {
                     runCatching {
-                        val bufferSize = 8192
                         val inputStream = context.resources.openRawResource(vueResource.assetId)
-                        val outFile = File(context.filesDir, generateFileName())
-                        inputStream.use { input ->
-                            outFile.outputStream().use { output ->
-                                var data = ByteArray(bufferSize)
-                                var count = input.read(data)
-                                while (count != -1) {
-                                    output.write(data, 0, count)
-                                    data = ByteArray(bufferSize)
-                                    count = input.read(data)
-                                }
+                        mFile = when(vueResource.fileType){
+                            VueFileType.PDF -> {
+                                inputStream.toFile(".pdf")
+                            }
+
+                            VueFileType.IMAGE -> {
+                                val imgFile = inputStream.toFile(".jpg")
+                                val _file = File(context.filesDir, generateFileName())
+                                addImageToPdf(
+                                    imageFilePath = imgFile.absolutePath,
+                                    pdfPath = _file.absolutePath
+                                )
+                                _file
+                            }
+                            VueFileType.BASE64 -> {
+                                inputStream.toFile(".txt").toBase64File()
                             }
                         }
-                        mFile = outFile
-                        initRenderer()
-                    }.onFailure {
-                        vueLoadState = VueLoadState.DocumentError(it)
-                    }
-                }
-            }
-
-            is VueResourceType.Base64 -> {
-                coroutineScope.launch(Dispatchers.IO) {
-                    runCatching {
-                        mFile = vueResource.file.toBase64File()
                         initRenderer()
                     }.onFailure {
                         vueLoadState = VueLoadState.DocumentError(it)
@@ -169,7 +163,25 @@ abstract class VueReaderState(
             is VueResourceType.Local -> {
                 coroutineScope.launch(Dispatchers.IO) {
                     runCatching {
-                        mFile = vueResource.uri.toFile()
+                        mFile = when(vueResource.fileType){
+                            VueFileType.PDF -> {
+                                vueResource.uri.toFile()
+                            }
+
+                            VueFileType.IMAGE -> {
+                                val imgFile = vueResource.uri.toFile()
+                                val _file = File(context.filesDir, generateFileName())
+                                addImageToPdf(
+                                    imageFilePath = imgFile.absolutePath,
+                                    pdfPath = _file.absolutePath
+                                )
+                                _file
+                            }
+                            VueFileType.BASE64 -> {
+                                vueResource.uri.toFile().toBase64File()
+                            }
+                        }
+
                         initRenderer()
                     }.onFailure {
                         vueLoadState = VueLoadState.DocumentError(it)
@@ -178,29 +190,6 @@ abstract class VueReaderState(
             }
 
             is VueResourceType.Remote -> {
-                coroutineScope.launch(Dispatchers.IO) {
-                    runCatching {
-                        val _file = File(context.filesDir, generateFileName())
-                        vueDownload(
-                            vueResource,
-                            _file,
-                            onProgressChange = { progress ->
-                                mLoadPercent = progress
-                            },
-                            onSuccess = {
-                                mFile = _file
-                                initRenderer()
-                            }
-                        ) {
-                            throw it
-                        }
-                    }.onFailure {
-                        vueLoadState = VueLoadState.DocumentError(it)
-                    }
-                }
-            }
-
-            is VueResourceType.RemoteBase64 -> {
                 coroutineScope.launch(Dispatchers.IO) {
                     runCatching {
                         val _file = File(context.filesDir, generateFileName())

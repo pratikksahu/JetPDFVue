@@ -119,7 +119,10 @@ fun HorizontalPdfViewer(horizontalVueReaderState: HorizontalVueReaderState) {
             }
 
             is VueLoadState.DocumentImporting -> {
-
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    CircularProgressIndicator()
+                    Text(text = "Importing...")
+                }
             }
 
             is VueLoadState.DocumentLoaded -> {

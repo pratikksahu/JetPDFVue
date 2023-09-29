@@ -2,6 +2,7 @@ package com.pratikk.jetpdfvue.network
 
 import android.util.Base64
 import android.util.Log
+import com.pratikk.jetpdfvue.state.VueFileType
 import com.pratikk.jetpdfvue.state.VueResourceType
 import com.pratikk.jetpdfvue.util.addImageToPdf
 import kotlinx.coroutines.Dispatchers
@@ -16,7 +17,7 @@ import java.net.URL
 import java.net.UnknownHostException
 
 suspend fun vueDownload(
-    vueResource: VueResourceType,
+    vueResource: VueResourceType.Remote,
     file: File,
     onProgressChange: (Int) -> Unit,
     onSuccess: () -> Unit,
@@ -26,11 +27,7 @@ suspend fun vueDownload(
     withContext(Dispatchers.IO){
         try {
             // URL of the file you want to download
-            val fileUrl = when (vueResource) {
-                is VueResourceType.Remote -> vueResource.url
-                is VueResourceType.RemoteBase64 -> vueResource.url
-                else -> throw Exception("Invalid resource type")
-            }
+            val fileUrl = vueResource.url
 
             // Create a URL object
             val url = URL(fileUrl)
@@ -42,20 +39,8 @@ suspend fun vueDownload(
             connection.requestMethod = "GET"
 
             // Set custom headers if needed
-            when (vueResource) {
-                is VueResourceType.Remote -> {
-                    vueResource.headers.forEach {
-                        connection.setRequestProperty(it.key, it.value)
-                    }
-                }
-
-                is VueResourceType.RemoteBase64 -> {
-                    vueResource.headers.forEach {
-                        connection.setRequestProperty(it.key, it.value)
-                    }
-                }
-
-                else -> {}
+            vueResource.headers.forEach {
+                connection.setRequestProperty(it.key, it.value)
             }
 
             // Get the input stream from the connection
@@ -79,35 +64,35 @@ suspend fun vueDownload(
             val buffer = ByteArray(1024)
             var bytesRead: Int
             var totalBytesRead = 0
-            when (vueResource) {
-                is VueResourceType.Remote -> {
-                    if(contentType.contains("pdf")) {
-                        while (bufferedInputStream.read(buffer).also { bytesRead = it } != -1) {
-                            outputStream.write(buffer, 0, bytesRead)
-                            totalBytesRead += bytesRead
-                            onProgressChange((totalBytesRead.toDouble() / fileSize.toDouble() * 100).toInt())
-                        }
-                    }else if(contentType.contains("image")){
-                        //Convert to pdf
-                        val imgFile = File.createTempFile("imageTemp",contentType.split("/")[1])
-                        val imgOutputStream = FileOutputStream(imgFile)
-                        while (bufferedInputStream.read(buffer).also { bytesRead = it } != -1) {
-                            imgOutputStream.write(buffer, 0, bytesRead)
-                            totalBytesRead += bytesRead
-                            onProgressChange((totalBytesRead.toDouble() / fileSize.toDouble() * 100).toInt())
-                        }
-                        imgOutputStream.close()
-                        addImageToPdf(imageFilePath = imgFile.absolutePath, pdfPath = file.absolutePath)
-                    }else{
-                        throw Exception("Invalid content type")
+            when(vueResource.fileType){
+                VueFileType.PDF -> {
+                    while (bufferedInputStream.read(buffer).also { bytesRead = it } != -1) {
+                        outputStream.write(buffer, 0, bytesRead)
+                        totalBytesRead += bytesRead
+                        onProgressChange((totalBytesRead.toDouble() / fileSize.toDouble() * 100).toInt())
                     }
                     // Close the streams
                     outputStream.close()
                     bufferedInputStream.close()
                     onSuccess()
                 }
+                VueFileType.IMAGE -> {
+                    val imgFile = File.createTempFile("imageTemp",contentType.split("/")[1])
+                    val imgOutputStream = FileOutputStream(imgFile)
+                    while (bufferedInputStream.read(buffer).also { bytesRead = it } != -1) {
+                        imgOutputStream.write(buffer, 0, bytesRead)
+                        totalBytesRead += bytesRead
+                        onProgressChange((totalBytesRead.toDouble() / fileSize.toDouble() * 100).toInt())
+                    }
+                    imgOutputStream.close()
+                    addImageToPdf(imageFilePath = imgFile.absolutePath, pdfPath = file.absolutePath)
 
-                is VueResourceType.RemoteBase64 -> {
+                    // Close the streams
+                    outputStream.close()
+                    bufferedInputStream.close()
+                    onSuccess()
+                }
+                VueFileType.BASE64 -> {
                     while (bufferedInputStream.read(buffer).also { bytesRead = it } != -1) {
                         byteArrayOutputStream.write(buffer, 0, bytesRead)
                         totalBytesRead += bytesRead
@@ -122,8 +107,6 @@ suspend fun vueDownload(
                     bufferedInputStream.close()
                     onSuccess()
                 }
-
-                else -> {}
             }
         }catch (e: FileNotFoundException) {
             file.delete()
