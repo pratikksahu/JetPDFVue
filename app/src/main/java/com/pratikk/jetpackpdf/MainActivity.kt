@@ -3,21 +3,35 @@ package com.pratikk.jetpackpdf
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.core.net.toUri
 import com.pratikk.jetpackpdf.horizontalSamples.HorizontalPdfViewer
 import com.pratikk.jetpackpdf.ui.theme.JetpackPDFTheme
 import com.pratikk.jetpackpdf.verticalSamples.VerticalPdfViewer
+import com.pratikk.jetpdfvue.state.VueFilePicker
+import com.pratikk.jetpdfvue.state.VueFilePickerState
+import com.pratikk.jetpdfvue.state.VueFileSources
 import com.pratikk.jetpdfvue.state.VueFileType
 import com.pratikk.jetpdfvue.state.VueResourceType
 import com.pratikk.jetpdfvue.state.rememberHorizontalVueReaderState
 import com.pratikk.jetpdfvue.state.rememberVerticalVueReaderState
 import com.pratikk.jetpdfvue.util.toFile
+import java.io.File
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -29,8 +43,31 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-
-                    HorizontalPreview()
+                    val context = LocalContext.current
+                    val vueFilePicker = rememberSaveable(saver = VueFilePicker.Saver) {
+                        VueFilePicker()
+                    }
+                    val launcher = vueFilePicker.getLauncher()
+                    when(vueFilePicker.vueFilePickerState){
+                        VueFilePickerState.VueFilePickerIdeal -> {
+                            Column(modifier = Modifier.fillMaxSize(),
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                                verticalArrangement = Arrangement.Center) {
+                                Button(onClick = { vueFilePicker.launchIntent(context, listOf(VueFileSources.CAMERA,VueFileSources.GALLERY,VueFileSources.PDF),launcher)}) {
+                                    Text(text = "Import Me")
+                                }
+                            }
+                        }
+                        is VueFilePickerState.VueFilePickerImported -> {
+                            val localImage = rememberHorizontalVueReaderState(
+                                resource = VueResourceType.Local(
+                                    uri = (vueFilePicker.vueFilePickerState as VueFilePickerState.VueFilePickerImported).file.toUri(),
+                                    fileType = VueFileType.IMAGE
+                                )
+                            )
+                            HorizontalPdfViewer(horizontalVueReaderState = localImage)
+                        }
+                    }
                 }
             }
         }
