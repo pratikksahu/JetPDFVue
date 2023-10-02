@@ -1,26 +1,77 @@
 package com.pratikk.jetpackpdf.verticalSamples
 
 import android.content.res.Configuration
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.IntSize
+import androidx.core.net.toUri
+import com.pratikk.jetpackpdf.horizontalSamples.HorizontalPdfViewer
 import com.pratikk.jetpdfvue.state.VerticalVueReaderState
+import com.pratikk.jetpdfvue.state.VueFilePicker
+import com.pratikk.jetpdfvue.state.VueFilePickerState
+import com.pratikk.jetpdfvue.state.VueFileSources
+import com.pratikk.jetpdfvue.state.VueFileType
 import com.pratikk.jetpdfvue.state.VueLoadState
+import com.pratikk.jetpdfvue.state.VueResourceType
+import com.pratikk.jetpdfvue.state.rememberHorizontalVueReaderState
+import com.pratikk.jetpdfvue.state.rememberVerticalVueReaderState
 import com.pratikk.jetpdfvue.util.compressImageToThreshold
 import kotlinx.coroutines.launch
 
+@Composable
+fun VerticalPdfViewerLocal(){
+    Surface(
+        modifier = Modifier
+            .fillMaxSize(),
+        color = MaterialTheme.colorScheme.background
+    ) {
+        val context = LocalContext.current
+        val vueFilePicker = rememberSaveable(saver = VueFilePicker.Saver) {
+            VueFilePicker()
+        }
+        val launcher = vueFilePicker.getLauncher()
+        when(vueFilePicker.vueFilePickerState){
+            VueFilePickerState.VueFilePickerIdeal -> {
+                Column(modifier = Modifier.fillMaxSize(),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center) {
+                    Button(onClick = { vueFilePicker.launchIntent(context, listOf(
+                        VueFileSources.CAMERA,
+                        VueFileSources.GALLERY,
+                        VueFileSources.PDF),launcher)}) {
+                        Text(text = "Import Me")
+                    }
+                }
+            }
+            is VueFilePickerState.VueFilePickerImported -> {
+                val localImage = rememberVerticalVueReaderState(
+                    resource = VueResourceType.Local(
+                        uri = (vueFilePicker.vueFilePickerState as VueFilePickerState.VueFilePickerImported).file.toUri(),
+                        fileType = VueFileType.IMAGE
+                    )
+                )
+                VerticalPdfViewer(verticalVueReaderState = localImage)
+            }
+        }
+    }
+}
 @Composable
 fun VerticalPdfViewer(verticalVueReaderState: VerticalVueReaderState) {
     val context = LocalContext.current
