@@ -148,6 +148,7 @@ abstract class VueReaderState(
                                 val _file = File(context.filesDir, generateFileName())
                                 addImageToPdf(
                                     imageFilePath = imgFile.absolutePath,
+                                    containerSize = containerSize,
                                     pdfPath = _file.absolutePath
                                 )
                                 _file
@@ -180,6 +181,7 @@ abstract class VueReaderState(
                                 val _file = File(context.filesDir, generateFileName())
                                 addImageToPdf(
                                     imageFilePath = imgFile.absolutePath,
+                                    containerSize = containerSize,
                                     pdfPath = _file.absolutePath
                                 )
                                 _file
@@ -379,6 +381,9 @@ abstract class VueReaderState(
                         if (uri != null && context.contentResolver.getType(uri)
                                 ?.contains("pdf") == true
                         ) {
+                            with(context){
+                                grantUriPermission(packageName,uri,Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                            }
                             val importedPdf = uri.getFile(context)
                             //If there is no existing pdf and no pdf for that document then copy imported doc to downloadDocumentFile
                             if (file != null && !file!!.exists() && file!!.length() == 0L) {
@@ -400,6 +405,7 @@ abstract class VueReaderState(
                                 interceptResult(importFile!!)
                             addImageToPdf(
                                 imageFilePath = importFile!!.absolutePath,
+                                containerSize = containerSize,
                                 pdfPath = file!!.absolutePath
                             )
                         }

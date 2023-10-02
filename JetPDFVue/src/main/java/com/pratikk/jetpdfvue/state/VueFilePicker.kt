@@ -18,6 +18,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.Saver
 import androidx.compose.runtime.saveable.listSaver
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.platform.LocalContext
 import androidx.core.content.FileProvider
 import androidx.core.net.toFile
 import com.pratikk.jetpdfvue.util.getDateddMMyyyyHHmm
@@ -87,6 +88,7 @@ class VueFilePicker {
 
     @Composable
     fun getLauncher(onResult:(File) -> Unit = {}): ManagedActivityResultLauncher<Intent, ActivityResult> {
+        val context = LocalContext.current
         LaunchedEffect(key1 = vueFilePickerState, block = {
             if (vueFilePickerState is VueFilePickerState.VueFilePickerImported && importJob == null) {
                 importJob = launch(context = coroutineContext, start = CoroutineStart.LAZY) {
@@ -102,6 +104,9 @@ class VueFilePicker {
             vueFilePickerState = if (it.resultCode == Activity.RESULT_OK) {
                 val uri = it.data?.data
                 if(uri != null){
+                    with(context){
+                        grantUriPermission(packageName,uri,Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                    }
                     //Other sources
                     VueFilePickerState.VueFilePickerImported(uri.toFile())
                 }else{
