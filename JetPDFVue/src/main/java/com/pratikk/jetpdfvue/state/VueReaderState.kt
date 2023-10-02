@@ -170,7 +170,9 @@ abstract class VueReaderState(
                     runCatching {
                         mFile = when(vueResource.fileType){
                             VueFileType.PDF -> {
-                                vueResource.uri.toFile()
+                                val blankFile = File(context.filesDir, generateFileName())
+                                vueResource.uri.toFile().copyTo(blankFile,true)
+                                blankFile
                             }
 
                             VueFileType.IMAGE -> {
@@ -183,7 +185,9 @@ abstract class VueReaderState(
                                 _file
                             }
                             VueFileType.BASE64 -> {
-                                vueResource.uri.toFile().toBase64File()
+                                val blankFile = File(context.filesDir, generateFileName())
+                                vueResource.uri.toFile().toBase64File().copyTo(blankFile,true)
+                                blankFile
                             }
                         }
 
