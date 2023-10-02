@@ -148,7 +148,6 @@ abstract class VueReaderState(
                                 val _file = File(context.filesDir, generateFileName())
                                 addImageToPdf(
                                     imageFilePath = imgFile.absolutePath,
-                                    containerSize = containerSize,
                                     pdfPath = _file.absolutePath
                                 )
                                 _file
@@ -181,7 +180,6 @@ abstract class VueReaderState(
                                 val _file = File(context.filesDir, generateFileName())
                                 addImageToPdf(
                                     imageFilePath = imgFile.absolutePath,
-                                    containerSize = containerSize,
                                     pdfPath = _file.absolutePath
                                 )
                                 _file
@@ -405,7 +403,6 @@ abstract class VueReaderState(
                                 interceptResult(importFile!!)
                             addImageToPdf(
                                 imageFilePath = importFile!!.absolutePath,
-                                containerSize = containerSize,
                                 pdfPath = file!!.absolutePath
                             )
                         }
