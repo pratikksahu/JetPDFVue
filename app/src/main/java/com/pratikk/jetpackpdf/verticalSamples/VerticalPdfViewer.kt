@@ -22,15 +22,13 @@ import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.IntSize
 import androidx.core.net.toUri
-import com.pratikk.jetpackpdf.horizontalSamples.HorizontalPdfViewer
 import com.pratikk.jetpdfvue.state.VerticalVueReaderState
 import com.pratikk.jetpdfvue.state.VueFilePicker
 import com.pratikk.jetpdfvue.state.VueFilePickerState
-import com.pratikk.jetpdfvue.state.VueFileSources
+import com.pratikk.jetpdfvue.state.VueImportSources
 import com.pratikk.jetpdfvue.state.VueFileType
 import com.pratikk.jetpdfvue.state.VueLoadState
 import com.pratikk.jetpdfvue.state.VueResourceType
-import com.pratikk.jetpdfvue.state.rememberHorizontalVueReaderState
 import com.pratikk.jetpdfvue.state.rememberVerticalVueReaderState
 import com.pratikk.jetpdfvue.util.compressImageToThreshold
 import kotlinx.coroutines.launch
@@ -53,10 +51,10 @@ fun VerticalPdfViewerLocal(){
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.Center) {
                     Button(onClick = { vueFilePicker.launchIntent(context, listOf(
-                        VueFileSources.CAMERA,
-                        VueFileSources.GALLERY,
-                        VueFileSources.PDF),launcher)}) {
-                        Text(text = "Import Me")
+                        VueImportSources.CAMERA,
+                        VueImportSources.GALLERY,
+                        VueImportSources.PDF),launcher)}) {
+                        Text(text = "Import Document")
                     }
                 }
             }

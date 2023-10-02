@@ -23,7 +23,6 @@ suspend fun vueDownload(
     onSuccess: () -> Unit,
     onError: (Exception) -> Unit
 ) {
-    val TAG = "VUEDOWNLOAD"
     withContext(Dispatchers.IO){
         try {
             // URL of the file you want to download
@@ -58,7 +57,6 @@ suspend fun vueDownload(
             // Get the content length (file size) from the response headers
             val contentLength = connection.getHeaderField("Content-Length")
             val contentType = connection.getHeaderField("Content-Type")
-            Log.d(TAG,contentType)
             val fileSize = contentLength?.toLong() ?: throw Exception("File not found on server")
             // Read and write the file data
             val buffer = ByteArray(1024)

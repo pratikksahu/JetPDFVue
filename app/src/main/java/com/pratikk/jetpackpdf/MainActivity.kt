@@ -187,6 +187,10 @@ class MainActivity : ComponentActivity() {
                                          */
                                         HorizontalPdfViewer(horizontalVueReaderState = assetPdf)
                                     }
+                                    5 -> {
+                                        val blankState = rememberHorizontalVueReaderState(resource = VueResourceType.BlankDocument())
+                                        HorizontalPdfViewer(horizontalVueReaderState = blankState)
+                                    }
                                 }
                             }
                             composable(route = "Vertical/{type}",
@@ -287,6 +291,10 @@ class MainActivity : ComponentActivity() {
                                          */
                                         VerticalPdfViewer(verticalVueReaderState = assetPdf)
                                     }
+                                    5 -> {
+                                        val blankState = rememberVerticalVueReaderState(resource = VueResourceType.BlankDocument())
+                                        VerticalPdfViewer(verticalVueReaderState = blankState)
+                                    }
                                 }
                             }
                         }
@@ -315,7 +323,7 @@ fun HomeOptions(modifier: Modifier = Modifier,
                 onSelection(isVertical, 1)
             }
             .fillMaxWidth()
-            .padding(horizontal = 16.dp,vertical = 12.dp),
+            .padding(horizontal = 16.dp, vertical = 12.dp),
             verticalAlignment = Alignment.CenterVertically) {
             Text(
                 modifier = Modifier.weight(1f),
@@ -327,7 +335,7 @@ fun HomeOptions(modifier: Modifier = Modifier,
                 onSelection(isVertical, 2)
             }
             .fillMaxWidth()
-            .padding(horizontal = 16.dp,vertical = 12.dp),
+            .padding(horizontal = 16.dp, vertical = 12.dp),
             verticalAlignment = Alignment.CenterVertically) {
             Text(
                 modifier = Modifier.weight(1f),
@@ -339,7 +347,7 @@ fun HomeOptions(modifier: Modifier = Modifier,
                 onSelection(isVertical, 3)
             }
             .fillMaxWidth()
-            .padding(horizontal = 16.dp,vertical = 12.dp),
+            .padding(horizontal = 16.dp, vertical = 12.dp),
             verticalAlignment = Alignment.CenterVertically) {
             Text(
                 modifier = Modifier.weight(1f),
@@ -351,11 +359,23 @@ fun HomeOptions(modifier: Modifier = Modifier,
                 onSelection(isVertical, 4)
             }
             .fillMaxWidth()
-            .padding(horizontal = 16.dp,vertical = 12.dp),
+            .padding(horizontal = 16.dp, vertical = 12.dp),
             verticalAlignment = Alignment.CenterVertically) {
             Text(
                 modifier = Modifier.weight(1f),
                 text = "Asset",style = MaterialTheme.typography.bodyLarge)
+        }
+        Divider(Modifier.padding(start = 14.dp))
+        Row(modifier = Modifier
+            .clickable {
+                onSelection(isVertical, 5)
+            }
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp, vertical = 12.dp),
+            verticalAlignment = Alignment.CenterVertically) {
+            Text(
+                modifier = Modifier.weight(1f),
+                text = "Blank Document",style = MaterialTheme.typography.bodyLarge)
         }
         Divider(Modifier.padding(start = 14.dp))
         Row(modifier = Modifier

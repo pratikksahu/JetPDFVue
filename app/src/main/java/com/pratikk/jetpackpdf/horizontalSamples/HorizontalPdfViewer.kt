@@ -4,13 +4,9 @@ import android.content.res.Configuration
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -23,13 +19,10 @@ import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.IntSize
 import androidx.core.net.toUri
-import com.pratikk.jetpackpdf.verticalSamples.VerticalPdfViewer
-import com.pratikk.jetpackpdf.verticalSamples.VerticalSampleA
-import com.pratikk.jetpdfvue.HorizontalVueReader
 import com.pratikk.jetpdfvue.state.HorizontalVueReaderState
 import com.pratikk.jetpdfvue.state.VueFilePicker
 import com.pratikk.jetpdfvue.state.VueFilePickerState
-import com.pratikk.jetpdfvue.state.VueFileSources
+import com.pratikk.jetpdfvue.state.VueImportSources
 import com.pratikk.jetpdfvue.state.VueFileType
 import com.pratikk.jetpdfvue.state.VueLoadState
 import com.pratikk.jetpdfvue.state.VueResourceType
@@ -49,8 +42,8 @@ fun HorizontalPdfViewerLocal(){
             Column(modifier = Modifier.fillMaxSize(),
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Center) {
-                Button(onClick = { vueFilePicker.launchIntent(context, listOf(VueFileSources.CAMERA,VueFileSources.GALLERY,VueFileSources.PDF),launcher)}) {
-                    Text(text = "Import Me")
+                Button(onClick = { vueFilePicker.launchIntent(context, listOf(VueImportSources.CAMERA,VueImportSources.GALLERY,VueImportSources.PDF),launcher)}) {
+                    Text(text = "Import Document")
                 }
             }
         }

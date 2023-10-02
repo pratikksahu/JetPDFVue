@@ -26,6 +26,7 @@ import com.pratikk.jetpdfvue.network.vueDownload
 import com.pratikk.jetpdfvue.util.addImageToPdf
 import com.pratikk.jetpdfvue.util.copyFile
 import com.pratikk.jetpdfvue.util.generateFileName
+import com.pratikk.jetpdfvue.util.getDateddMMyyyyHHmm
 import com.pratikk.jetpdfvue.util.getFile
 import com.pratikk.jetpdfvue.util.mergePdf
 import com.pratikk.jetpdfvue.util.share
@@ -38,6 +39,7 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import java.io.File
+import java.util.Calendar
 
 abstract class VueReaderState(
     val vueResource: VueResourceType
@@ -110,7 +112,6 @@ abstract class VueReaderState(
             if(vueResource is VueResourceType.BlankDocument)
                 mFile = vueResource.uri!!.toFile()
             requireNotNull(value = mFile, lazyMessage = {"Could not restore file"})
-            Log.d(TAG,"Cannot load, importing document")
             return
         }
 
@@ -137,7 +138,9 @@ abstract class VueReaderState(
                         val inputStream = context.resources.openRawResource(vueResource.assetId)
                         mFile = when(vueResource.fileType){
                             VueFileType.PDF -> {
-                                inputStream.toFile(".pdf")
+                                val blankFile = File(context.filesDir, generateFileName())
+                                inputStream.toFile(".pdf").copyTo(blankFile,true)
+                                blankFile
                             }
 
                             VueFileType.IMAGE -> {
@@ -150,7 +153,9 @@ abstract class VueReaderState(
                                 _file
                             }
                             VueFileType.BASE64 -> {
-                                inputStream.toFile(".txt").toBase64File()
+                                val blankFile = File(context.filesDir, generateFileName())
+                                inputStream.toFile(".txt").toBase64File().copyTo(blankFile,true)
+                                blankFile
                             }
                         }
                         initRenderer()
@@ -247,11 +252,26 @@ abstract class VueReaderState(
     /**
      * Should launch import intent by invoking this function
      * */
-    fun launchImportIntent(context: Context,launcher:ActivityResultLauncher<Intent>){
-        val intent = getIntentForImporting(context = context)
+    fun launchImportIntent(context: Context,
+                           vueImportSources: List<VueImportSources> = listOf(VueImportSources.CAMERA,
+                                   VueImportSources.GALLERY,
+                                   VueImportSources.PDF),
+                           launcher:ActivityResultLauncher<Intent>){
+        require(value = vueImportSources.isNotEmpty(), lazyMessage = {"File Sources cannot be empty"})
+        val intents = ArrayList<Intent>()
+        vueImportSources.forEach { source ->
+            val intent = when(source){
+                VueImportSources.CAMERA -> cameraIntent(context)
+                VueImportSources.GALLERY -> galleryIntent()
+                VueImportSources.BASE64 -> base64Intent()
+                VueImportSources.PDF -> pdfIntent()
+            }
+            intents.add(intent)
+        }
+        val chooserIntent = createChooserIntent(intents)
         vueLoadState = VueLoadState.DocumentImporting
         vueRenderer?.close()
-        launcher.launch(intent)
+        launcher.launch(chooserIntent)
     }
 
     /**
@@ -261,7 +281,6 @@ abstract class VueReaderState(
     fun getImportLauncher(interceptResult: suspend (File) -> Unit = {}): ActivityResultLauncher<Intent> {
         val context = LocalContext.current
         LaunchedEffect(vueImportState){
-            Log.d(TAG,vueImportState.toString())
             if(vueImportState is VueImportState.Imported)
                 handleImportResult(
                     uri = (vueImportState as VueImportState.Imported).uri,
@@ -272,7 +291,6 @@ abstract class VueReaderState(
         return rememberLauncherForActivityResult(
             contract = ActivityResultContracts.StartActivityForResult(),
             onResult = {
-                Log.d(TAG, "Result ${it}")
                 if (it.resultCode == RESULT_OK) {
                     val uri = it.data?.data
                     vueImportState = VueImportState.Imported(uri)
@@ -289,7 +307,19 @@ abstract class VueReaderState(
     /**
      * Helper intent creator for importing pdf or image from gallery/camera
      */
-    private fun getIntentForImporting(context: Context): Intent {
+    private fun createChooserIntent(intents:ArrayList<Intent>):Intent{
+        val chooserIntent = Intent.createChooser(Intent(),"Select action")
+        chooserIntent.putExtra(Intent.EXTRA_INTENT, intents[0])
+        if(intents.size > 1) {
+            intents.removeAt(0)
+            chooserIntent.putExtra(
+                Intent.EXTRA_INITIAL_INTENTS,
+                intents.toTypedArray()
+            )
+        }
+        return chooserIntent
+    }
+    private fun cameraIntent(context: Context):Intent{
         importFile = File(context.cacheDir, "importTemp_${System.currentTimeMillis()}.jpg")
         if (importFile?.parentFile?.exists() == false) {
             importFile?.parentFile?.mkdirs()
@@ -297,34 +327,35 @@ abstract class VueReaderState(
             importFile?.parentFile?.deleteRecursively()
             importFile?.parentFile?.mkdirs()
         }
-
-        val mimeTypes = arrayListOf("image/*", "application/pdf")
-        val galleryAndPdfIntent = Intent(Intent.ACTION_GET_CONTENT)
-        galleryAndPdfIntent.type = "*/*"
-        galleryAndPdfIntent.putExtra(Intent.EXTRA_MIME_TYPES, mimeTypes.joinToString("|"))
-
-        // Camera
-        val cameraIntent = Intent(MediaStore.ACTION_IMAGE_CAPTURE)
-        val uri: Uri = if (Build.VERSION.SDK_INT < 24)
-            Uri.fromFile(importFile)
-        else
-            FileProvider.getUriForFile(
-                context,
-                context.applicationContext.packageName + ".provider",
-                importFile!!
-            )
-        cameraIntent.putExtra(MediaStore.EXTRA_OUTPUT, uri)
-
-        // Chooser of filesystem options.
-        val chooserIntent = Intent(Intent.ACTION_CHOOSER)
-        chooserIntent.putExtra(Intent.EXTRA_INTENT, galleryAndPdfIntent)
-
-//         Add the camera options.
-        chooserIntent.putExtra(
-            Intent.EXTRA_INITIAL_INTENTS,
-            arrayOf(cameraIntent)
-        )
-        return chooserIntent
+        val cameraIntent = Intent(MediaStore.ACTION_IMAGE_CAPTURE).apply {
+            val uri: Uri = if (Build.VERSION.SDK_INT < 24)
+                Uri.fromFile(importFile)
+            else
+                FileProvider.getUriForFile(
+                    context,
+                    context.applicationContext.packageName + ".provider",
+                    importFile!!
+                )
+            putExtra(MediaStore.EXTRA_OUTPUT, uri)
+        }
+        return cameraIntent
+    }
+    private fun galleryIntent():Intent{
+        val intent = Intent(Intent.ACTION_PICK)
+        intent.type = "image/*"
+        return intent
+    }
+    private fun base64Intent(): Intent {
+        val intent = Intent(Intent.ACTION_GET_CONTENT)
+        intent.type = "text/plain"
+        intent.addCategory(Intent.CATEGORY_OPENABLE)
+        return intent
+    }
+    private fun pdfIntent(): Intent {
+        val intent = Intent(Intent.ACTION_GET_CONTENT)
+        intent.type = "application/pdf"
+        intent.addCategory(Intent.CATEGORY_OPENABLE)
+        return intent
     }
 
     /**
@@ -340,7 +371,6 @@ abstract class VueReaderState(
             scope.launch(context = Dispatchers.IO) {
                 importJob = launch(context = coroutineContext,start = CoroutineStart.LAZY) {
                     runCatching {
-                        Log.d(TAG, "Received data")
                         //If uri is null then the result is from camera , otherwise its from gallery
                         if (uri != null && context.contentResolver.getType(uri)
                                 ?.contains("pdf") == true

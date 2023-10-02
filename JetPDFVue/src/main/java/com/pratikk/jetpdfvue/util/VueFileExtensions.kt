@@ -98,7 +98,7 @@ fun File.compressImageToThreshold(threshold: Int) {
         copyTo(tempFile, true)
         var quality = 100 // Initial quality setting
         var currentSize = tempFile.length()
-        println("Before compress $currentSize")
+
         while (currentSize > (threshold * 1024 * 1024)) { // 2MB in bytes
             quality -= 5 // Reduce quality in steps of 5
             if (quality < 0) {
@@ -108,7 +108,7 @@ fun File.compressImageToThreshold(threshold: Int) {
             // Compress the image and get its new size
             currentSize = tempFile.compressImage(quality)
         }
-        println("After compress $currentSize")
+
         tempFile.copyTo(this,true)
     }
 }

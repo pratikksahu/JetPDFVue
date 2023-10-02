@@ -15,18 +15,13 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.Saver
 import androidx.compose.runtime.saveable.listSaver
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.platform.LocalContext
 import androidx.core.content.FileProvider
 import androidx.core.net.toFile
-import com.pratikk.jetpdfvue.util.generateFileName
 import com.pratikk.jetpdfvue.util.getDateddMMyyyyHHmm
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.CoroutineStart
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
@@ -41,7 +36,7 @@ sealed class VueFilePickerState {
     data object VueFilePickerIdeal : VueFilePickerState(), Parcelable
 }
 
-enum class VueFileSources{
+enum class VueImportSources{
     CAMERA,GALLERY,BASE64,PDF
 }
 class VueFilePicker {
@@ -72,17 +67,17 @@ class VueFilePicker {
 
     fun launchIntent(
         context: Context,
-        vueFileSources: List<VueFileSources>,
+        vueImportSources: List<VueImportSources>,
         launcher: ManagedActivityResultLauncher<Intent, ActivityResult>
     ) {
-        require(value = vueFileSources.isNotEmpty(), lazyMessage = {"File Sources cannot be empty"})
+        require(value = vueImportSources.isNotEmpty(), lazyMessage = {"File Sources cannot be empty"})
         val intents = ArrayList<Intent>()
-        vueFileSources.forEach { source ->
+        vueImportSources.forEach { source ->
             val intent = when(source){
-                VueFileSources.CAMERA -> cameraIntent(context)
-                VueFileSources.GALLERY -> galleryIntent()
-                VueFileSources.BASE64 -> base64Intent()
-                VueFileSources.PDF -> pdfIntent()
+                VueImportSources.CAMERA -> cameraIntent(context)
+                VueImportSources.GALLERY -> galleryIntent()
+                VueImportSources.BASE64 -> base64Intent()
+                VueImportSources.PDF -> pdfIntent()
             }
             intents.add(intent)
         }
