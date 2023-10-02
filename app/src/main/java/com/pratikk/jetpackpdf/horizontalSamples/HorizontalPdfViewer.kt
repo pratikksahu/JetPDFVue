@@ -50,8 +50,8 @@ fun HorizontalPdfViewerLocal(){
         is VueFilePickerState.VueFilePickerImported -> {
             val localImage = rememberHorizontalVueReaderState(
                 resource = VueResourceType.Local(
-                    uri = (vueFilePicker.vueFilePickerState as VueFilePickerState.VueFilePickerImported).file.toUri(),
-                    fileType = VueFileType.IMAGE
+                    uri = (vueFilePicker.vueFilePickerState as VueFilePickerState.VueFilePickerImported).uri,
+                    fileType = VueFileType.PDF
                 )
             )
             HorizontalPdfViewer(horizontalVueReaderState = localImage)

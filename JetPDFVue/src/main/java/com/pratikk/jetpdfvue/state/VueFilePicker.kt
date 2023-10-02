@@ -21,7 +21,11 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
 import androidx.core.content.FileProvider
 import androidx.core.net.toFile
+import androidx.core.net.toUri
+import com.pratikk.jetpdfvue.util.generateFileName
 import com.pratikk.jetpdfvue.util.getDateddMMyyyyHHmm
+import com.pratikk.jetpdfvue.util.getFile
+import com.pratikk.jetpdfvue.util.toFile
 import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.isActive
@@ -32,14 +36,16 @@ import java.util.Calendar
 
 sealed class VueFilePickerState {
     @Parcelize
-    data class VueFilePickerImported(val file: File) : VueFilePickerState(), Parcelable
+    data class VueFilePickerImported(val uri:Uri) : VueFilePickerState(), Parcelable
+
     @Parcelize
     data object VueFilePickerIdeal : VueFilePickerState(), Parcelable
 }
 
-enum class VueImportSources{
-    CAMERA,GALLERY,BASE64,PDF
+enum class VueImportSources {
+    CAMERA, GALLERY, BASE64, PDF
 }
+
 class VueFilePicker {
     private var importFile: File? = null
     private var importJob: Job? = null
@@ -71,10 +77,12 @@ class VueFilePicker {
         vueImportSources: List<VueImportSources>,
         launcher: ManagedActivityResultLauncher<Intent, ActivityResult>
     ) {
-        require(value = vueImportSources.isNotEmpty(), lazyMessage = {"File Sources cannot be empty"})
+        require(
+            value = vueImportSources.isNotEmpty(),
+            lazyMessage = { "File Sources cannot be empty" })
         val intents = ArrayList<Intent>()
         vueImportSources.forEach { source ->
-            val intent = when(source){
+            val intent = when (source) {
                 VueImportSources.CAMERA -> cameraIntent(context)
                 VueImportSources.GALLERY -> galleryIntent()
                 VueImportSources.BASE64 -> base64Intent()
@@ -87,13 +95,13 @@ class VueFilePicker {
     }
 
     @Composable
-    fun getLauncher(onResult:(File) -> Unit = {}): ManagedActivityResultLauncher<Intent, ActivityResult> {
+    fun getLauncher(onResult: (Uri) -> Unit = {}): ManagedActivityResultLauncher<Intent, ActivityResult> {
         val context = LocalContext.current
         LaunchedEffect(key1 = vueFilePickerState, block = {
             if (vueFilePickerState is VueFilePickerState.VueFilePickerImported && importJob == null) {
                 importJob = launch(context = coroutineContext, start = CoroutineStart.LAZY) {
-                    if(isActive){
-                        onResult((vueFilePickerState as VueFilePickerState.VueFilePickerImported).file)
+                    if (isActive) {
+                        onResult((vueFilePickerState as VueFilePickerState.VueFilePickerImported).uri)
                     }
                 }
                 importJob?.start()
@@ -103,25 +111,26 @@ class VueFilePicker {
         return rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) {
             vueFilePickerState = if (it.resultCode == Activity.RESULT_OK) {
                 val uri = it.data?.data
-                if(uri != null){
-                    with(context){
-                        grantUriPermission(packageName,uri,Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                if (uri != null) {
+                    with(context) {
+                        grantUriPermission(packageName, uri, Intent.FLAG_GRANT_READ_URI_PERMISSION)
                     }
                     //Other sources
-                    VueFilePickerState.VueFilePickerImported(uri.toFile())
-                }else{
+                    VueFilePickerState.VueFilePickerImported(uri)}
+                else {
                     //From Camera
-                    VueFilePickerState.VueFilePickerImported(importFile!!)
+                    VueFilePickerState.VueFilePickerImported(importFile!!.toUri())
                 }
-            }else{
+            } else {
                 VueFilePickerState.VueFilePickerIdeal
             }
         }
     }
-    private fun createChooserIntent(intents:ArrayList<Intent>):Intent{
-        val chooserIntent = Intent.createChooser(Intent(),"Select action")
+
+    private fun createChooserIntent(intents: ArrayList<Intent>): Intent {
+        val chooserIntent = Intent.createChooser(Intent(), "Select action")
         chooserIntent.putExtra(Intent.EXTRA_INTENT, intents[0])
-        if(intents.size > 1) {
+        if (intents.size > 1) {
             intents.removeAt(0)
             chooserIntent.putExtra(
                 Intent.EXTRA_INITIAL_INTENTS,
@@ -130,8 +139,12 @@ class VueFilePicker {
         }
         return chooserIntent
     }
-    private fun cameraIntent(context: Context):Intent{
-        importFile = File(context.filesDir, "${Calendar.getInstance().timeInMillis.getDateddMMyyyyHHmm()}_${Calendar.getInstance().timeInMillis}.jpg")
+
+    private fun cameraIntent(context: Context): Intent {
+        importFile = File(
+            context.filesDir,
+            "${Calendar.getInstance().timeInMillis.getDateddMMyyyyHHmm()}_${Calendar.getInstance().timeInMillis}.jpg"
+        )
         if (importFile?.parentFile?.exists() == false) {
             importFile?.parentFile?.mkdirs()
         }
@@ -148,17 +161,20 @@ class VueFilePicker {
         }
         return cameraIntent
     }
-    private fun galleryIntent():Intent{
+
+    private fun galleryIntent(): Intent {
         val intent = Intent(Intent.ACTION_PICK)
         intent.type = "image/*"
         return intent
     }
+
     private fun base64Intent(): Intent {
         val intent = Intent(Intent.ACTION_GET_CONTENT)
         intent.type = "text/plain"
         intent.addCategory(Intent.CATEGORY_OPENABLE)
         return intent
     }
+
     private fun pdfIntent(): Intent {
         val intent = Intent(Intent.ACTION_GET_CONTENT)
         intent.type = "application/pdf"
