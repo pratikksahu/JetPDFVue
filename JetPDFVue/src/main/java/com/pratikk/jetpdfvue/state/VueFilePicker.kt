@@ -7,6 +7,7 @@ import android.net.Uri
 import android.os.Build
 import android.os.Parcelable
 import android.provider.MediaStore
+import android.webkit.MimeTypeMap
 import androidx.activity.compose.ManagedActivityResultLauncher
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.ActivityResult
@@ -36,11 +37,22 @@ import java.util.Calendar
 
 sealed class VueFilePickerState {
     @Parcelize
-    data class VueFilePickerImported(val uri:Uri) : VueFilePickerState(), Parcelable
+    data class VueFilePickerImported(val uri: Uri) : VueFilePickerState(), Parcelable {
+        fun getFileType(context: Context): VueFileType {
+            val type = context.contentResolver.getType(uri)
+                ?: uri.scheme ?: throw Throwable("File type cannot be decoded, please check uri $uri")
+            return if (type.contains("pdf"))
+                VueFileType.PDF
+            else if (type.contains("text") || type.contains("txt"))
+                VueFileType.BASE64
+            else
+                VueFileType.IMAGE
+        }
+    }
 
-    @Parcelize
-    data object VueFilePickerIdeal : VueFilePickerState(), Parcelable
-}
+        @Parcelize
+        data object VueFilePickerIdeal : VueFilePickerState(), Parcelable
+    }
 
 enum class VueImportSources {
     CAMERA, GALLERY, BASE64, PDF
@@ -72,6 +84,10 @@ class VueFilePicker {
         )
     }
 
+    /**
+     * @param vueImportSources At least one source is required. If base64 and pdf both are included then
+     * the file manager will enable importing of other file types as well.
+     * */
     fun launchIntent(
         context: Context,
         vueImportSources: List<VueImportSources>,
@@ -81,7 +97,15 @@ class VueFilePicker {
             value = vueImportSources.isNotEmpty(),
             lazyMessage = { "File Sources cannot be empty" })
         val intents = ArrayList<Intent>()
-        vueImportSources.forEach { source ->
+        val filterImportState = vueImportSources.toMutableList().let {
+            if(it.contains(VueImportSources.BASE64) && it.contains(VueImportSources.PDF)) {
+                it.remove(VueImportSources.PDF)
+                it.remove(VueImportSources.BASE64)
+                intents.add(base64AndPdfIntent())
+            }
+            it
+        }
+        filterImportState.forEach { source ->
             val intent = when (source) {
                 VueImportSources.CAMERA -> cameraIntent(context)
                 VueImportSources.GALLERY -> galleryIntent()
@@ -96,7 +120,6 @@ class VueFilePicker {
 
     @Composable
     fun getLauncher(onResult: (Uri) -> Unit = {}): ManagedActivityResultLauncher<Intent, ActivityResult> {
-        val context = LocalContext.current
         LaunchedEffect(key1 = vueFilePickerState, block = {
             if (vueFilePickerState is VueFilePickerState.VueFilePickerImported && importJob == null) {
                 importJob = launch(context = coroutineContext, start = CoroutineStart.LAZY) {
@@ -112,12 +135,9 @@ class VueFilePicker {
             vueFilePickerState = if (it.resultCode == Activity.RESULT_OK) {
                 val uri = it.data?.data
                 if (uri != null) {
-                    with(context) {
-                        grantUriPermission(packageName, uri, Intent.FLAG_GRANT_READ_URI_PERMISSION)
-                    }
                     //Other sources
-                    VueFilePickerState.VueFilePickerImported(uri)}
-                else {
+                    VueFilePickerState.VueFilePickerImported(uri)
+                } else {
                     //From Camera
                     VueFilePickerState.VueFilePickerImported(importFile!!.toUri())
                 }
@@ -178,6 +198,13 @@ class VueFilePicker {
     private fun pdfIntent(): Intent {
         val intent = Intent(Intent.ACTION_GET_CONTENT)
         intent.type = "application/pdf"
+        intent.addCategory(Intent.CATEGORY_OPENABLE)
+        return intent
+    }
+    private fun base64AndPdfIntent():Intent{
+        val intent = Intent(Intent.ACTION_GET_CONTENT)
+        intent.type = "*/*"
+        intent.putExtra(Intent.EXTRA_MIME_TYPES, listOf("application/pdf","text/plain").toTypedArray())
         intent.addCategory(Intent.CATEGORY_OPENABLE)
         return intent
     }

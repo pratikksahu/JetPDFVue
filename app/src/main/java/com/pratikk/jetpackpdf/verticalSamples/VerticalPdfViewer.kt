@@ -62,7 +62,7 @@ fun VerticalPdfViewerLocal(){
                 val localImage = rememberVerticalVueReaderState(
                     resource = VueResourceType.Local(
                         uri = (vueFilePicker.vueFilePickerState as VueFilePickerState.VueFilePickerImported).uri,
-                        fileType = VueFileType.IMAGE
+                        fileType = (vueFilePicker.vueFilePickerState as VueFilePickerState.VueFilePickerImported).getFileType(context)
                     )
                 )
                 VerticalPdfViewer(verticalVueReaderState = localImage)

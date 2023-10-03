@@ -42,7 +42,7 @@ fun HorizontalPdfViewerLocal(){
             Column(modifier = Modifier.fillMaxSize(),
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Center) {
-                Button(onClick = { vueFilePicker.launchIntent(context, listOf(VueImportSources.CAMERA,VueImportSources.GALLERY,VueImportSources.PDF),launcher)}) {
+                Button(onClick = { vueFilePicker.launchIntent(context, listOf(VueImportSources.CAMERA,VueImportSources.GALLERY,VueImportSources.PDF,VueImportSources.BASE64),launcher)}) {
                     Text(text = "Import Document")
                 }
             }
@@ -51,7 +51,7 @@ fun HorizontalPdfViewerLocal(){
             val localImage = rememberHorizontalVueReaderState(
                 resource = VueResourceType.Local(
                     uri = (vueFilePicker.vueFilePickerState as VueFilePickerState.VueFilePickerImported).uri,
-                    fileType = VueFileType.PDF
+                    fileType = (vueFilePicker.vueFilePickerState as VueFilePickerState.VueFilePickerImported).getFileType(context)
                 )
             )
             HorizontalPdfViewer(horizontalVueReaderState = localImage)

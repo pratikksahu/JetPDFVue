@@ -168,25 +168,53 @@ abstract class VueReaderState(
             is VueResourceType.Local -> {
                 coroutineScope.launch(Dispatchers.IO) {
                     runCatching {
+                        with(context) {
+                            grantUriPermission(packageName, vueResource.uri, Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                        }
                         mFile = when(vueResource.fileType){
                             VueFileType.PDF -> {
                                 val blankFile = File(context.filesDir, generateFileName())
-                                vueResource.uri.toFile().copyTo(blankFile,true)
+                                if(vueResource.uri.scheme?.contains("content") == true){
+                                    //Create file from using input stream
+                                    context.contentResolver.openInputStream(vueResource.uri)?.use {
+                                        val type = context.contentResolver.getType(vueResource.uri)?.split("/")?.get(1) ?: throw Throwable("Cannot decode uri file format")
+                                        it.toFile(type).copyTo(blankFile, true)
+                                    }
+                                }else {
+                                    vueResource.uri.toFile().copyTo(blankFile, true)
+                                }
                                 blankFile
                             }
 
                             VueFileType.IMAGE -> {
-                                val imgFile = vueResource.uri.toFile()
+                                val blankFile = File(context.filesDir, generateFileName())
+                                if(vueResource.uri.scheme?.contains("content") == true){
+                                    //Create file from using input stream
+                                    context.contentResolver.openInputStream(vueResource.uri)?.use {
+                                        val type = context.contentResolver.getType(vueResource.uri)?.split("/")?.get(1) ?: throw Throwable("Cannot decode uri file format")
+                                        it.toFile(type).copyTo(blankFile, true)
+                                    }
+                                }else {
+                                    vueResource.uri.toFile().copyTo(blankFile, true)
+                                }
                                 val _file = File(context.filesDir, generateFileName())
                                 addImageToPdf(
-                                    imageFilePath = imgFile.absolutePath,
+                                    imageFilePath = blankFile.absolutePath,
                                     pdfPath = _file.absolutePath
                                 )
                                 _file
                             }
                             VueFileType.BASE64 -> {
                                 val blankFile = File(context.filesDir, generateFileName())
-                                vueResource.uri.toFile().toBase64File().copyTo(blankFile,true)
+                                if(vueResource.uri.scheme?.contains("content") == true){
+                                    //Create file from using input stream
+                                    context.contentResolver.openInputStream(vueResource.uri)?.use {
+                                        val type = context.contentResolver.getType(vueResource.uri)?.split("/")?.get(1) ?: throw Throwable("Cannot decode uri file format")
+                                        it.toFile(type).toBase64File().copyTo(blankFile, true)
+                                    }
+                                }else {
+                                    vueResource.uri.toFile().toBase64File().copyTo(blankFile,true)
+                                }
                                 blankFile
                             }
                         }
@@ -254,7 +282,9 @@ abstract class VueReaderState(
     }
 
     /**
-     * Should launch import intent by invoking this function
+     * Helper to launch import intent
+     * @param vueImportSources At least one source is required. If base64 and pdf both are included then
+     * the file manager will enable importing of other file types as well.
      * */
     fun launchImportIntent(context: Context,
                            vueImportSources: List<VueImportSources> = listOf(VueImportSources.CAMERA,
@@ -263,7 +293,15 @@ abstract class VueReaderState(
                            launcher:ActivityResultLauncher<Intent>){
         require(value = vueImportSources.isNotEmpty(), lazyMessage = {"File Sources cannot be empty"})
         val intents = ArrayList<Intent>()
-        vueImportSources.forEach { source ->
+        val filterImportState = vueImportSources.toMutableList().let {
+            if(it.contains(VueImportSources.BASE64) && it.contains(VueImportSources.PDF)) {
+                it.remove(VueImportSources.PDF)
+                it.remove(VueImportSources.BASE64)
+                intents.add(base64AndPdfIntent())
+            }
+            it
+        }
+        filterImportState.forEach { source ->
             val intent = when(source){
                 VueImportSources.CAMERA -> cameraIntent(context)
                 VueImportSources.GALLERY -> galleryIntent()
@@ -361,6 +399,13 @@ abstract class VueReaderState(
         intent.addCategory(Intent.CATEGORY_OPENABLE)
         return intent
     }
+    private fun base64AndPdfIntent():Intent{
+        val intent = Intent(Intent.ACTION_GET_CONTENT)
+        intent.type = "*/*"
+        intent.putExtra(Intent.EXTRA_MIME_TYPES, listOf("application/pdf","text/plain").toTypedArray())
+        intent.addCategory(Intent.CATEGORY_OPENABLE)
+        return intent
+    }
 
     /**
      * @param interceptResult Can be used to do operation on the imported image/pdf. Changes must be saved to the same file object
@@ -379,10 +424,10 @@ abstract class VueReaderState(
                         if (uri != null && context.contentResolver.getType(uri)
                                 ?.contains("pdf") == true
                         ) {
-                            with(context){
-                                grantUriPermission(packageName,uri,Intent.FLAG_GRANT_READ_URI_PERMISSION)
-                            }
-                            val importedPdf = uri.getFile(context)
+                            // First try for content scheme otherwise file scheme
+                            val importedPdf = context.contentResolver.openInputStream(uri)?.use {
+                                it.toFile("pdf")
+                            } ?: uri.toFile()
                             //If there is no existing pdf and no pdf for that document then copy imported doc to downloadDocumentFile
                             if (file != null && !file!!.exists() && file!!.length() == 0L) {
                                 importedPdf.copyTo(file!!, true)
