@@ -1,5 +1,4 @@
 # JetPDFVue [![](https://jitpack.io/v/pratikksahu/JetPDFVue.svg)](https://jitpack.io/#pratikksahu/JetPDFVue)
-# App Description
 JetPDFVue is a library to **Create,Modify,View PDF** written in Jetpack Compose. This was created using [PDFRenderer](https://developer.android.com/reference/android/graphics/pdf/PdfRenderer) and [PDFDocument](https://developer.android.com/reference/android/graphics/pdf/PdfDocument). The library supports both Horizontal and Vertical viewing.
 
 # Examples
@@ -63,25 +62,29 @@ dependencies {
 
 ```kotlin
 val horizontalVueReaderState = rememberHorizontalVueReaderState(
-        resource = VueResourceType.Base64(
-            context.assets.open("lorem_ipsum_base64.txt").let { inputStream ->
-                inputStream.toFile(extension = ".txt")
-            }
-        ),
-        cache = 3 // By default 0
-    )
+    resource = VueResourceType.Local(
+        uri = context.resources.openRawResource(
+            R.raw.lorem_ipsum
+        ).toFile(".pdf").toUri(),
+        fileType = VueFileType.PDF
+    ),
+    cache = 3 // By default 0
+)
+    
 // .toFile is an util extension function to convert cany input stream to a file
 ```
 #### This is for vertical viewing
 ```kotlin
 val verticalVueReaderState = rememberVerticalVueReaderState(
-        resource = VueResourceType.Base64(
-            context.assets.open("lorem_ipsum_base64.txt").let { inputStream ->
-                inputStream.toFile(extension = ".txt")
-            }
-        ),
-        cache = 3 // By default 0
-    )
+    resource = VueResourceType.Local(
+        uri = context.resources.openRawResource(
+            R.raw.lorem_ipsum
+        ).toFile(".pdf").toUri(),
+        fileType = VueFileType.PDF
+    ),
+    cache = 3 // By default 0
+)
+    
 // .toFile is an util extension function to convert cany input stream to a file
 ```
 **Step 5.** Invoke load() method to initalize source
@@ -150,31 +153,95 @@ is VueLoadState.DocumentLoaded -> {
 ### Remote
 1. Base64
 ```kotlin
-rememberHorizontalVueReaderState(resource = VueResourceType.RemoteBase64("https://drive.google.com/uc?export=download&id=1-mmdJ2K2x3MDgTqmFd8sMpW3zIFyNYY-"))
+rememberHorizontalVueReaderState(
+        resource = VueResourceType.Remote(
+            "https://drive.google.com/uc?export=download&id=1-mmdJ2K2x3MDgTqmFd8sMpW3zIFyNYY-",
+            fileType = VueFileType.BASE64
+        )
+    )
 ```
 2. PDF
 ```kotlin
-rememberHorizontalVueReaderState(resource = VueResourceType.Remote("https://drive.google.com/uc?export=download&id=1DSA7cmFzqCtTsHhlB0xdYJ6UweuC8IOz"))
+rememberHorizontalVueReaderState(
+        resource = VueResourceType.Remote(
+            "https://drive.google.com/uc?export=download&id=1DSA7cmFzqCtTsHhlB0xdYJ6UweuC8IOz",
+            fileType = VueFileType.PDF
+        )
+    )
 ```
 3. Image
 ```kotlin
-rememberHorizontalVueReaderState(resource = VueResourceType.Remote("InsertyYourImageLink.com"))
+rememberHorizontalVueReaderState(
+        resource = VueResourceType.Remote(
+            "InsertyYourImageLink.com",
+            fileType = VueFileType.IMAGE
+        )
+    )
 ```
 ### Local
 1. Base64
 ```kotlin
 rememberHorizontalVueReaderState(
-        resource = VueResourceType.Base64(
-            context.assets.open("lorem_ipsum_base64.txt").let { inputStream ->
-                inputStream.toFile(extension = ".txt")
-            }
-        )
+    resource = VueResourceType.Local(
+        uri = <Uri of Base64>,
+        fileType = VueFileType.BASE64
     )
+)
 ```
-2. Asset
+2. PDF
 ```kotlin
 rememberHorizontalVueReaderState(
-        resource = VueResourceType.Asset(R.raw.lorem_ipsum))
+    resource = VueResourceType.Local(
+        uri = <Uri of PDF>,
+        fileType = VueFileType.PDF
+    )
+)
+```
+3. Image
+```kotlin
+rememberHorizontalVueReaderState(
+    resource = VueResourceType.Local(
+        uri = <Uri of Image>,
+        fileType = VueFileType.IMAGE
+    )
+)
+```
+### Asset
+1. Base64
+```kotlin
+rememberHorizontalVueReaderState(
+    resource = VueResourceType.Asset(
+        assetId = <Asset Id in raw folder>,
+        fileType = VueFileType.BASE64
+    )
+)
+```
+2. PDF
+```kotlin
+rememberHorizontalVueReaderState(
+    resource = VueResourceType.Asset(
+        assetId = <Asset Id in raw folder>,
+        fileType = VueFileType.PDF
+    )
+)
+```
+3. Image
+```kotlin
+rememberHorizontalVueReaderState(
+    resource = VueResourceType.Asset(
+        assetId = <Asset Id in raw folder>,
+        fileType = VueFileType.IMAGE
+    )
+)
+```
+
+### Blank Document
+This state is added in case of showing the preview on the same compose without navigating.
+[VueReader]() file picker can be used to create a pdf.
+This resource type provides an additional state [NoDocument](JetPDFVue/src/main/java/com/pratikk/jetpdfvue/state/VueLoadState.kt) which can be used to show UI for importing any document/image.
+
+```kotlin
+rememberHorizontalVueReaderState(resource = VueResourceType.BlankDocument())
 ```
 ### Custom
     Any network request or transformation can be done in this scope
@@ -191,6 +258,7 @@ rememberHorizontalVueReaderState(
             })
 ```
 # Import PDF and Images
+This launcher should be used when resource type is any of [VueResourceType](JetPDFVue/src/main/java/com/pratikk/jetpdfvue/state/VueResourceType.kt)
 ### 1. Create launcher
 ```kotlin
  val launcher = horizontalVueReaderState.getImportLauncher(interceptResult = {file ->
@@ -208,7 +276,49 @@ horizontalVueReaderState.launchImportIntent(
                         launcher = launcher
                     )
 ```
+This launcher should be used when preview is required to be on next screen
+### 1. Create launcher
+```kotlin
+val vueFilePicker = rememberSaveable(saver = VueFilePicker.Saver) {
+        VueFilePicker()
+    }
+val launcher = vueFilePicker.getLauncher()
+```
+### 2. Launch Import Intent
+```kotlin
+vueFilePicker.launchIntent(
+                        context = context,
+                        vueImportSources = listOf(
+                            VueImportSources.CAMERA,
+                            VueImportSources.GALLERY,
+                            VueImportSources.PDF,
+                            VueImportSources.BASE64
+                        ),
+                        launcher = launcher
+                    )
+```
+### 3. VueFilePicker States
+```kotlin
+val filePickerState = vueFilePicker.vueFilePickerState
+    when(filePickerState){
+        VueFilePickerState.VueFilePickerIdeal -> {
+            /**
+             * State when no file has been picked yet
+             * */
+        }
+        is VueFilePickerState.VueFilePickerImported -> {
+            /**
+             * State when file has been imported
+             * file uri can be retrieved by (filePickerState as VueFilePickerState.VueFilePickerImported).uri
+             * file type can be retrieved by (filePickerState as VueFilePickerState.VueFilePickerImported).getFileType(context)
+             *  
+             * Navigate to preview screen and load pdf by using Local resource type
+             * Or just share the file
+             * */
 
+        }
+    }
+```
 # Share PDF
 ```kotlin
 horizontalVueReaderState.sharePDF(context)
