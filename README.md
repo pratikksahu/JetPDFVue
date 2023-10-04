@@ -246,6 +246,9 @@ rememberHorizontalVueReaderState(resource = VueResourceType.BlankDocument())
 ### Custom
     Any network request or transformation can be done in this scope
 ```kotlin
+rememberHorizontalVueReaderState(resource = VueResourceType.Custom)
+```
+```kotlin
     LaunchedEffect(key1 = Unit, block = {
                 horizontalVueReaderState.load(
                     context = context, 
