@@ -88,7 +88,7 @@ internal suspend fun addImageToPdf(
                 Bitmap.Config.ARGB_8888
             )
             // Draw the contents of the original page onto the pageBitmap
-            originalPage.render(pageBitmap, null, null, PdfRenderer.Page.RENDER_MODE_FOR_DISPLAY)
+            originalPage.render(pageBitmap, null, null, PdfRenderer.Page.RENDER_MODE_FOR_PRINT)
             // Close the original page
             originalPage.close()
 
@@ -172,7 +172,7 @@ internal suspend fun mergePdf(oldPdfPath: String, importedPdfPath: String) {
                 Bitmap.Config.ARGB_8888
             )
             // Draw the contents of the original page onto the bitmap
-            originalPage.render(bitmap, null, null, PdfRenderer.Page.RENDER_MODE_FOR_DISPLAY)
+            originalPage.render(bitmap, null, null, PdfRenderer.Page.RENDER_MODE_FOR_PRINT)
             // Close the original page
             originalPage.close()
 
@@ -203,7 +203,7 @@ internal suspend fun mergePdf(oldPdfPath: String, importedPdfPath: String) {
                 Bitmap.Config.ARGB_8888
             )
             // Draw the contents of the original page onto the bitmap
-            originalPage.render(bitmap, null, null, PdfRenderer.Page.RENDER_MODE_FOR_DISPLAY)
+            originalPage.render(bitmap, null, null, PdfRenderer.Page.RENDER_MODE_FOR_PRINT)
             // Close the original page
             originalPage.close()
 
