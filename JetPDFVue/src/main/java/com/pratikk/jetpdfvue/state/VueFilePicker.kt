@@ -120,29 +120,20 @@ class VueFilePicker {
 
     @Composable
     fun getLauncher(onResult: (Uri) -> Unit = {}): ManagedActivityResultLauncher<Intent, ActivityResult> {
-        LaunchedEffect(key1 = vueFilePickerState, block = {
-            if (vueFilePickerState is VueFilePickerState.VueFilePickerImported && importJob == null) {
-                importJob = launch(context = coroutineContext, start = CoroutineStart.LAZY) {
-                    if (isActive) {
-                        onResult((vueFilePickerState as VueFilePickerState.VueFilePickerImported).uri)
-                    }
-                }
-                importJob?.start()
-                importJob?.join()
-            }
-        })
         return rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) {
-            vueFilePickerState = if (it.resultCode == Activity.RESULT_OK) {
+            if (it.resultCode == Activity.RESULT_OK) {
                 val uri = it.data?.data
                 if (uri != null) {
                     //Other sources
-                    VueFilePickerState.VueFilePickerImported(uri)
+                    vueFilePickerState = VueFilePickerState.VueFilePickerImported(uri)
+                    onResult(uri)
                 } else {
                     //From Camera
-                    VueFilePickerState.VueFilePickerImported(importFile!!.toUri())
+                    vueFilePickerState = VueFilePickerState.VueFilePickerImported(importFile!!.toUri())
+                    onResult(importFile!!.toUri())
                 }
             } else {
-                VueFilePickerState.VueFilePickerIdeal
+                vueFilePickerState = VueFilePickerState.VueFilePickerIdeal
             }
         }
     }
