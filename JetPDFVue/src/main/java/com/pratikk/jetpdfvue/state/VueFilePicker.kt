@@ -7,7 +7,6 @@ import android.net.Uri
 import android.os.Build
 import android.os.Parcelable
 import android.provider.MediaStore
-import android.webkit.MimeTypeMap
 import androidx.activity.compose.ManagedActivityResultLauncher
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.ActivityResult
@@ -21,11 +20,9 @@ import androidx.compose.runtime.saveable.listSaver
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
 import androidx.core.content.FileProvider
-import androidx.core.net.toFile
 import androidx.core.net.toUri
-import com.pratikk.jetpdfvue.util.generateFileName
 import com.pratikk.jetpdfvue.util.getDateddMMyyyyHHmm
-import com.pratikk.jetpdfvue.util.getFile
+import com.pratikk.jetpdfvue.util.getFileType
 import com.pratikk.jetpdfvue.util.toFile
 import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.Job
@@ -37,22 +34,11 @@ import java.util.Calendar
 
 sealed class VueFilePickerState {
     @Parcelize
-    data class VueFilePickerImported(val uri: Uri) : VueFilePickerState(), Parcelable {
-        fun getFileType(context: Context): VueFileType {
-            val type = context.contentResolver.getType(uri)
-                ?: uri.scheme ?: throw Throwable("File type cannot be decoded, please check uri $uri")
-            return if (type.contains("pdf"))
-                VueFileType.PDF
-            else if (type.contains("text") || type.contains("txt"))
-                VueFileType.BASE64
-            else
-                VueFileType.IMAGE
-        }
-    }
+    data class VueFilePickerImported(val uri: Uri) : VueFilePickerState(), Parcelable
 
-        @Parcelize
-        data object VueFilePickerIdeal : VueFilePickerState(), Parcelable
-    }
+    @Parcelize
+    data object VueFilePickerIdeal : VueFilePickerState(), Parcelable
+}
 
 enum class VueImportSources {
     CAMERA, GALLERY, BASE64, PDF
@@ -61,8 +47,9 @@ enum class VueImportSources {
 class VueFilePicker {
     private var importFile: File? = null
     private var importJob: Job? = null
-    var vueFilePickerState by mutableStateOf<VueFilePickerState>(VueFilePickerState.VueFilePickerIdeal)
+    var isImporting by mutableStateOf(false)
         private set
+    private var vueFilePickerState by mutableStateOf<VueFilePickerState>(VueFilePickerState.VueFilePickerIdeal)
 
     companion object {
         val Saver: Saver<VueFilePicker, *> = listSaver(
@@ -82,6 +69,12 @@ class VueFilePicker {
                 }
             }
         )
+        val UriSaver:Saver<Uri,*> = listSaver(
+            save = { listOf(VueFilePickerState.VueFilePickerImported(it)) },
+            restore = {
+                it[0].uri
+            }
+        )
     }
 
     /**
@@ -98,7 +91,7 @@ class VueFilePicker {
             lazyMessage = { "File Sources cannot be empty" })
         val intents = ArrayList<Intent>()
         val filterImportState = vueImportSources.toMutableList().let {
-            if(it.contains(VueImportSources.BASE64) && it.contains(VueImportSources.PDF)) {
+            if (it.contains(VueImportSources.BASE64) && it.contains(VueImportSources.PDF)) {
                 it.remove(VueImportSources.PDF)
                 it.remove(VueImportSources.BASE64)
                 intents.add(base64AndPdfIntent())
@@ -118,22 +111,68 @@ class VueFilePicker {
         launcher.launch(chooserIntent)
     }
 
+    /**
+     * @param interceptResult Any operations to be done on file should happen inside this lambda. Note : This lambda will be invoked on every configuration change until onResult is called
+     * @param onResult Final result can be obtained inside this block. The result should be copied to a known location for further use
+     */
     @Composable
-    fun getLauncher(onResult: (Uri) -> Unit = {}): ManagedActivityResultLauncher<Intent, ActivityResult> {
+    fun getLauncher(
+        interceptResult: suspend (File) -> Unit = {},
+        onResult: (File) -> Unit = {}
+    ): ManagedActivityResultLauncher<Intent, ActivityResult> {
+        val context = LocalContext.current
+        LaunchedEffect(key1 = vueFilePickerState, block = {
+            if (vueFilePickerState is VueFilePickerState.VueFilePickerImported && importJob == null) {
+                importJob = launch(context = coroutineContext, start = CoroutineStart.LAZY) {
+                    with((vueFilePickerState as VueFilePickerState.VueFilePickerImported)) {
+                        //Create a temp file using result uri
+                        val file = context.contentResolver.openInputStream(uri)?.use {
+                            val ext = when (uri.getFileType(context)) {
+                                VueFileType.PDF -> {
+                                    "pdf"
+                                }
+
+                                VueFileType.IMAGE -> {
+                                    "jpg"
+                                }
+
+                                VueFileType.BASE64 -> {
+                                    "txt"
+                                }
+                            }
+                            it.toFile(ext)
+                        }!!
+
+                        isImporting = true
+                        interceptResult(file)
+
+                        if (isActive) {
+                            onResult(file)
+                        }
+                    }
+                }.apply {
+                    invokeOnCompletion {
+                        importJob = null
+                        vueFilePickerState = VueFilePickerState.VueFilePickerIdeal
+                        isImporting = false
+                    }
+                }
+                importJob?.start()
+                importJob?.join()
+            }
+        })
         return rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) {
-            if (it.resultCode == Activity.RESULT_OK) {
+            vueFilePickerState = if (it.resultCode == Activity.RESULT_OK) {
                 val uri = it.data?.data
                 if (uri != null) {
                     //Other sources
-                    vueFilePickerState = VueFilePickerState.VueFilePickerImported(uri)
-                    onResult(uri)
+                    VueFilePickerState.VueFilePickerImported(uri)
                 } else {
                     //From Camera
-                    vueFilePickerState = VueFilePickerState.VueFilePickerImported(importFile!!.toUri())
-                    onResult(importFile!!.toUri())
+                    VueFilePickerState.VueFilePickerImported(importFile!!.toUri())
                 }
             } else {
-                vueFilePickerState = VueFilePickerState.VueFilePickerIdeal
+                VueFilePickerState.VueFilePickerIdeal
             }
         }
     }
@@ -192,10 +231,14 @@ class VueFilePicker {
         intent.addCategory(Intent.CATEGORY_OPENABLE)
         return intent
     }
-    private fun base64AndPdfIntent():Intent{
+
+    private fun base64AndPdfIntent(): Intent {
         val intent = Intent(Intent.ACTION_GET_CONTENT)
         intent.type = "*/*"
-        intent.putExtra(Intent.EXTRA_MIME_TYPES, listOf("application/pdf","text/plain").toTypedArray())
+        intent.putExtra(
+            Intent.EXTRA_MIME_TYPES,
+            listOf("application/pdf", "text/plain").toTypedArray()
+        )
         intent.addCategory(Intent.CATEGORY_OPENABLE)
         return intent
     }

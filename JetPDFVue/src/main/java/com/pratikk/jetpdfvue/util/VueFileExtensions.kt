@@ -9,6 +9,7 @@ import android.media.ExifInterface
 import android.net.Uri
 import android.util.Base64
 import androidx.core.content.FileProvider
+import com.pratikk.jetpdfvue.state.VueFileType
 import java.io.ByteArrayOutputStream
 import java.io.File
 import java.io.FileInputStream
@@ -20,6 +21,16 @@ import java.util.Calendar
 import java.util.Date
 import java.util.Locale
 
+fun Uri.getFileType(context: Context): VueFileType {
+    val type = context.contentResolver.getType(this)
+        ?: scheme ?: throw Throwable("File type cannot be decoded, please check uri $this")
+    return if (type.contains("pdf"))
+        VueFileType.PDF
+    else if (type.contains("text") || type.contains("txt"))
+        VueFileType.BASE64
+    else
+        VueFileType.IMAGE
+}
 
 fun File.share(context: Context) {
     if (exists()) {
@@ -116,7 +127,7 @@ fun File.compressImageToThreshold(threshold: Int) {
  * Extension function to convert any input stream to a file
  * */
 fun InputStream.toFile(extension:String):File{
-    val _file = File.createTempFile("temp",extension)
+    val _file = File.createTempFile("temp",".${extension}")
     val byteArrayOutputStream = ByteArrayOutputStream()
     val buffer = ByteArray(1024)
     var bytesRead: Int

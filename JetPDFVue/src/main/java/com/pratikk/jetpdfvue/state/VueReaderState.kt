@@ -139,12 +139,12 @@ abstract class VueReaderState(
                         mFile = when(vueResource.fileType){
                             VueFileType.PDF -> {
                                 val blankFile = File(context.filesDir, generateFileName())
-                                inputStream.toFile(".pdf").copyTo(blankFile,true)
+                                inputStream.toFile("pdf").copyTo(blankFile,true)
                                 blankFile
                             }
 
                             VueFileType.IMAGE -> {
-                                val imgFile = inputStream.toFile(".jpg")
+                                val imgFile = inputStream.toFile("jpg")
                                 val _file = File(context.filesDir, generateFileName())
                                 addImageToPdf(
                                     imageFilePath = imgFile.absolutePath,
@@ -154,7 +154,7 @@ abstract class VueReaderState(
                             }
                             VueFileType.BASE64 -> {
                                 val blankFile = File(context.filesDir, generateFileName())
-                                inputStream.toFile(".txt").toBase64File().copyTo(blankFile,true)
+                                inputStream.toFile("txt").toBase64File().copyTo(blankFile,true)
                                 blankFile
                             }
                         }

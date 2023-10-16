@@ -45,6 +45,7 @@ import com.pratikk.jetpackpdf.horizontalSamples.HorizontalPdfViewerLocal
 import com.pratikk.jetpackpdf.ui.theme.JetpackPDFTheme
 import com.pratikk.jetpackpdf.verticalSamples.VerticalPdfViewer
 import com.pratikk.jetpackpdf.verticalSamples.VerticalPdfViewerLocal
+import com.pratikk.jetpdfvue.state.VueFilePicker
 import com.pratikk.jetpdfvue.state.VueFileType
 import com.pratikk.jetpdfvue.state.VueResourceType
 import com.pratikk.jetpdfvue.state.rememberHorizontalVueReaderState
@@ -108,7 +109,7 @@ class MainActivity : ComponentActivity() {
                                             resource = VueResourceType.Local(
                                                 uri = context.resources.openRawResource(
                                                     R.raw.demo
-                                                ).toFile(".jpg").toUri(),
+                                                ).toFile("jpg").toUri(),
                                                 fileType = VueFileType.IMAGE
                                             ),
                                         )
@@ -212,7 +213,7 @@ class MainActivity : ComponentActivity() {
                                             resource = VueResourceType.Local(
                                                 uri = context.resources.openRawResource(
                                                     R.raw.demo
-                                                ).toFile(".jpg").toUri(),
+                                                ).toFile("jpg").toUri(),
                                                 fileType = VueFileType.IMAGE
                                             ),
                                         )
