@@ -52,6 +52,8 @@ fun HorizontalPdfViewerLocal(){
         Column(modifier = Modifier.fillMaxSize(),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center) {
+            if(vueFilePicker.isImporting)
+                CircularProgressIndicator()
             Button(onClick = { vueFilePicker.launchIntent(context, listOf(VueImportSources.CAMERA,VueImportSources.GALLERY,VueImportSources.PDF,VueImportSources.BASE64),launcher)}) {
                 Text(text = "Import Document")
             }

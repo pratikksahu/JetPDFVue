@@ -324,11 +324,63 @@ abstract class VueReaderState(
         val context = LocalContext.current
         LaunchedEffect(vueImportState){
             if(vueImportState is VueImportState.Imported)
-                handleImportResult(
-                    uri = (vueImportState as VueImportState.Imported).uri,
-                    scope = this,
-                    interceptResult = interceptResult,
-                    context = context)
+                if (importJob == null) {
+                    importJob = launch(
+                        context = coroutineContext + Dispatchers.IO,
+                        start = CoroutineStart.LAZY
+                    ) {
+                        runCatching {
+                            val uri = (vueImportState as VueImportState.Imported).uri
+                            //If uri is null then the result is from camera , otherwise its from gallery
+                            if (uri != null && context.contentResolver.getType(uri)
+                                    ?.contains("pdf") == true
+                            ) {
+                                // First try for content scheme otherwise file scheme
+                                val importedPdf = context.contentResolver.openInputStream(uri)?.use {
+                                    it.toFile("pdf")
+                                } ?: uri.toFile()
+                                //If there is no existing pdf and no pdf for that document then copy imported doc to downloadDocumentFile
+                                if (file != null && !file!!.exists() && file!!.length() == 0L) {
+                                    importedPdf.copyTo(file!!, true)
+                                } else {
+                                    //Merge imported pdf with existing pdf
+                                    mergePdf(
+                                        oldPdfPath = file!!.absolutePath,
+                                        importedPdfPath = importedPdf.absolutePath
+                                    )
+                                }
+                            } else {
+                                requireNotNull(
+                                    value = importFile,
+                                    lazyMessage = { "Import file cannot be null" })
+                                uri?.copyFile(context, importFile!!.toUri())
+                                //Give option to user to manipulate result like compress or rotate
+                                if (isActive)
+                                    interceptResult(importFile!!)
+                                addImageToPdf(
+                                    imageFilePath = importFile!!.absolutePath,
+                                    pdfPath = file!!.absolutePath
+                                )
+                            }
+                            if (isActive) {
+                                initRenderer()
+                                vueImportState = VueImportState.Ideal()
+                                mDocumentModified = true
+                                importFile = null
+                                importJob = null
+                            }
+                        }.onFailure {
+                            if (isActive) {
+                                vueLoadState = VueLoadState.DocumentError(it)
+                                importFile = null
+                                vueImportState = VueImportState.Ideal()
+                                importJob = null
+                            }
+                        }
+                    }
+                    importJob?.start()
+                    importJob?.join()
+                }
         }
         return rememberLauncherForActivityResult(
             contract = ActivityResultContracts.StartActivityForResult(),
@@ -405,72 +457,6 @@ abstract class VueReaderState(
         intent.putExtra(Intent.EXTRA_MIME_TYPES, listOf("application/pdf","text/plain").toTypedArray())
         intent.addCategory(Intent.CATEGORY_OPENABLE)
         return intent
-    }
-
-    /**
-     * @param interceptResult Can be used to do operation on the imported image/pdf. Changes must be saved to the same file object
-     * */
-    private fun handleImportResult(
-        uri: Uri?,
-        scope: CoroutineScope,
-        interceptResult:suspend (File) -> Unit = {},
-        context: Context
-    ) {
-        if (importJob == null)
-            scope.launch(context = Dispatchers.IO) {
-                importJob = launch(context = coroutineContext,start = CoroutineStart.LAZY) {
-                    runCatching {
-                        //If uri is null then the result is from camera , otherwise its from gallery
-                        if (uri != null && context.contentResolver.getType(uri)
-                                ?.contains("pdf") == true
-                        ) {
-                            // First try for content scheme otherwise file scheme
-                            val importedPdf = context.contentResolver.openInputStream(uri)?.use {
-                                it.toFile("pdf")
-                            } ?: uri.toFile()
-                            //If there is no existing pdf and no pdf for that document then copy imported doc to downloadDocumentFile
-                            if (file != null && !file!!.exists() && file!!.length() == 0L) {
-                                importedPdf.copyTo(file!!, true)
-                            } else {
-                                //Merge imported pdf with existing pdf
-                                mergePdf(
-                                    oldPdfPath = file!!.absolutePath,
-                                    importedPdfPath = importedPdf.absolutePath
-                                )
-                            }
-                        } else {
-                            requireNotNull(
-                                value = importFile,
-                                lazyMessage = {"Import file cannot be null"})
-                            uri?.copyFile(context,importFile!!.toUri())
-                            //Give option to user to manipulate result like compress or rotate
-                            if(isActive)
-                                interceptResult(importFile!!)
-                            addImageToPdf(
-                                imageFilePath = importFile!!.absolutePath,
-                                pdfPath = file!!.absolutePath
-                            )
-                        }
-                        if(isActive) {
-                            initRenderer()
-                            vueImportState = VueImportState.Ideal()
-                            mDocumentModified = true
-                            importFile = null
-                            importJob = null
-                        }
-                    }.onFailure {
-                        if(isActive) {
-                            vueLoadState = VueLoadState.DocumentError(it)
-                            importFile = null
-                            vueImportState = VueImportState.Ideal()
-                            importJob = null
-                        }
-                    }
-                }
-                importJob?.start()
-                importJob?.join()
-            }
-
     }
 
     fun sharePDF(context: Context){

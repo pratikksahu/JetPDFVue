@@ -21,10 +21,13 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
 import androidx.core.content.FileProvider
 import androidx.core.net.toUri
+import com.pratikk.jetpdfvue.util.compressImageToThreshold
 import com.pratikk.jetpdfvue.util.getDateddMMyyyyHHmm
 import com.pratikk.jetpdfvue.util.getFileType
+import com.pratikk.jetpdfvue.util.rotateImageIfNeeded
 import com.pratikk.jetpdfvue.util.toFile
 import kotlinx.coroutines.CoroutineStart
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
@@ -123,7 +126,7 @@ class VueFilePicker {
         val context = LocalContext.current
         LaunchedEffect(key1 = vueFilePickerState, block = {
             if (vueFilePickerState is VueFilePickerState.VueFilePickerImported && importJob == null) {
-                importJob = launch(context = coroutineContext, start = CoroutineStart.LAZY) {
+                importJob = launch(context = coroutineContext + Dispatchers.IO, start = CoroutineStart.LAZY) {
                     with((vueFilePickerState as VueFilePickerState.VueFilePickerImported)) {
                         //Create a temp file using result uri
                         val file = context.contentResolver.openInputStream(uri)?.use {
@@ -142,10 +145,8 @@ class VueFilePicker {
                             }
                             it.toFile(ext)
                         }!!
-
-                        isImporting = true
                         interceptResult(file)
-
+                        file.rotateImageIfNeeded().compressImageToThreshold(2)
                         if (isActive) {
                             onResult(file)
                         }
@@ -158,6 +159,7 @@ class VueFilePicker {
                     }
                 }
                 importJob?.start()
+                isImporting = true
                 importJob?.join()
             }
         })
