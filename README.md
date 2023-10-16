@@ -65,13 +65,13 @@ val horizontalVueReaderState = rememberHorizontalVueReaderState(
     resource = VueResourceType.Local(
         uri = context.resources.openRawResource(
             R.raw.lorem_ipsum
-        ).toFile(".pdf").toUri(),
+        ).toFile("pdf").toUri(),
         fileType = VueFileType.PDF
     ),
     cache = 3 // By default 0
 )
     
-// .toFile is an util extension function to convert cany input stream to a file
+// .toFile is an util extension function to convert any input stream to a file
 ```
 #### This is for vertical viewing
 ```kotlin
@@ -79,13 +79,13 @@ val verticalVueReaderState = rememberVerticalVueReaderState(
     resource = VueResourceType.Local(
         uri = context.resources.openRawResource(
             R.raw.lorem_ipsum
-        ).toFile(".pdf").toUri(),
+        ).toFile("pdf").toUri(),
         fileType = VueFileType.PDF
     ),
     cache = 3 // By default 0
 )
     
-// .toFile is an util extension function to convert cany input stream to a file
+// .toFile is an util extension function to convert any input stream to a file
 ```
 **Step 5.** Invoke load() method to initalize source
 ```kotlin
@@ -261,7 +261,7 @@ rememberHorizontalVueReaderState(resource = VueResourceType.Custom)
             })
 ```
 # Import PDF and Images
-This launcher should be used when resource type is any of [VueResourceType](JetPDFVue/src/main/java/com/pratikk/jetpdfvue/state/VueResourceType.kt)
+## This launcher should be used when resource type is of [VueResourceType](JetPDFVue/src/main/java/com/pratikk/jetpdfvue/state/VueResourceType.kt)
 ### 1. Create launcher
 ```kotlin
  val launcher = horizontalVueReaderState.getImportLauncher(interceptResult = {file ->
@@ -279,13 +279,20 @@ horizontalVueReaderState.launchImportIntent(
                         launcher = launcher
                     )
 ```
-This launcher should be used when preview is required to be on next screen
+## General file picker to import image from gallery/camera, pdf from device storage
 ### 1. Create launcher
 ```kotlin
 val vueFilePicker = rememberSaveable(saver = VueFilePicker.Saver) {
         VueFilePicker()
     }
-val launcher = vueFilePicker.getLauncher()
+val launcher = vueFilePicker.getLauncher(
+        interceptResult = {
+        //Perform file operation on imported file
+        },
+        onResult = {
+            //Get the final file
+        }
+    )
 ```
 ### 2. Launch Import Intent
 ```kotlin
@@ -299,28 +306,6 @@ vueFilePicker.launchIntent(
                         ),
                         launcher = launcher
                     )
-```
-### 3. VueFilePicker States
-```kotlin
-val filePickerState = vueFilePicker.vueFilePickerState
-    when(filePickerState){
-        VueFilePickerState.VueFilePickerIdeal -> {
-            /**
-             * State when no file has been picked yet
-             * */
-        }
-        is VueFilePickerState.VueFilePickerImported -> {
-            /**
-             * State when file has been imported
-             * file uri can be retrieved by (filePickerState as VueFilePickerState.VueFilePickerImported).uri
-             * file type can be retrieved by (filePickerState as VueFilePickerState.VueFilePickerImported).getFileType(context)
-             *  
-             * Navigate to preview screen and load pdf by using Local resource type
-             * Or just share the file
-             * */
-
-        }
-    }
 ```
 # Share PDF
 ```kotlin
