@@ -146,7 +146,7 @@ class VueFilePicker {
                             it.toFile(ext)
                         }!!
                         interceptResult(file)
-                        file.rotateImageIfNeeded().compressImageToThreshold(2)
+
                         if (isActive) {
                             onResult(file)
                         }
