@@ -21,10 +21,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
 import androidx.core.content.FileProvider
 import androidx.core.net.toUri
-import com.pratikk.jetpdfvue.util.compressImageToThreshold
 import com.pratikk.jetpdfvue.util.getDateddMMyyyyHHmm
 import com.pratikk.jetpdfvue.util.getFileType
-import com.pratikk.jetpdfvue.util.rotateImageIfNeeded
 import com.pratikk.jetpdfvue.util.toFile
 import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.Dispatchers
@@ -94,10 +92,17 @@ class VueFilePicker {
             lazyMessage = { "File Sources cannot be empty" })
         val intents = ArrayList<Intent>()
         val filterImportState = vueImportSources.toMutableList().let {
-            if (it.contains(VueImportSources.BASE64) && it.contains(VueImportSources.PDF)) {
+            if (it.contains(VueImportSources.BASE64) && it.contains(VueImportSources.PDF) && it.contains(VueImportSources.GALLERY)) {
+                it.remove(VueImportSources.PDF)
+                it.remove(VueImportSources.BASE64)
+                intents.add(base64PdfAndGalleryIntent())
+            }else if(it.contains(VueImportSources.BASE64) && it.contains(VueImportSources.PDF)){
                 it.remove(VueImportSources.PDF)
                 it.remove(VueImportSources.BASE64)
                 intents.add(base64AndPdfIntent())
+            }else if(it.contains(VueImportSources.PDF) && it.contains(VueImportSources.GALLERY)) {
+                it.remove(VueImportSources.PDF)
+                intents.add(pdfAndGalleryIntent())
             }
             it
         }
@@ -234,12 +239,33 @@ class VueFilePicker {
         return intent
     }
 
+    private fun base64PdfAndGalleryIntent(): Intent {
+        val intent = Intent(Intent.ACTION_GET_CONTENT)
+        intent.type = "*/*"
+        intent.putExtra(
+            Intent.EXTRA_MIME_TYPES,
+            listOf("application/pdf", "text/plain","image/*").toTypedArray()
+        )
+        intent.addCategory(Intent.CATEGORY_OPENABLE)
+        return intent
+    }
+
     private fun base64AndPdfIntent(): Intent {
         val intent = Intent(Intent.ACTION_GET_CONTENT)
         intent.type = "*/*"
         intent.putExtra(
             Intent.EXTRA_MIME_TYPES,
             listOf("application/pdf", "text/plain").toTypedArray()
+        )
+        intent.addCategory(Intent.CATEGORY_OPENABLE)
+        return intent
+    }
+    private fun pdfAndGalleryIntent(): Intent {
+        val intent = Intent(Intent.ACTION_GET_CONTENT)
+        intent.type = "*/*"
+        intent.putExtra(
+            Intent.EXTRA_MIME_TYPES,
+            listOf("application/pdf", "image/*").toTypedArray()
         )
         intent.addCategory(Intent.CATEGORY_OPENABLE)
         return intent

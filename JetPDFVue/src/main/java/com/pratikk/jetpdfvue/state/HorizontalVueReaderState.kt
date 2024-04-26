@@ -67,7 +67,8 @@ class HorizontalVueReaderState(
                             VueResourceType.BlankDocument(file.toUri())
                         else
                             VueResourceType.Local(
-                                file.toUri()
+                                file.toUri(),
+                                it.getResourceType()
                             )
                     } ?: it.vueResource
 

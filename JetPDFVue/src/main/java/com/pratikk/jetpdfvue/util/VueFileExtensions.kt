@@ -28,7 +28,15 @@ fun Uri.getFileType(context: Context): VueFileType {
         VueFileType.PDF
     else if (type.contains("text") || type.contains("txt"))
         VueFileType.BASE64
-    else
+    else if(type == "file") {
+        val file = getFile(context)
+        if(file.name.contains("pdf"))
+            VueFileType.PDF
+        else if (file.name.contains("text") || file.name.contains("txt"))
+            VueFileType.BASE64
+        else
+            VueFileType.IMAGE
+    } else
         VueFileType.IMAGE
 }
 
