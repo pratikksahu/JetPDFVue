@@ -58,7 +58,7 @@ fun HorizontalPdfViewerLocal(){
                 Text(text = "Import Document")
             }
         }
-    }else{
+    }else {
         val localImage = rememberHorizontalVueReaderState(
             resource = VueResourceType.Local(
                 uri = uri,

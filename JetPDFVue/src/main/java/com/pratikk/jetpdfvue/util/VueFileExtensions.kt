@@ -9,6 +9,7 @@ import android.media.ExifInterface
 import android.net.Uri
 import android.util.Base64
 import androidx.core.content.FileProvider
+import androidx.core.net.toFile
 import com.pratikk.jetpdfvue.state.VueFileType
 import java.io.ByteArrayOutputStream
 import java.io.File
@@ -29,7 +30,7 @@ fun Uri.getFileType(context: Context): VueFileType {
     else if (type.contains("text") || type.contains("txt"))
         VueFileType.BASE64
     else if(type == "file") {
-        val file = getFile(context)
+        val file = toFile()
         if(file.name.contains("pdf"))
             VueFileType.PDF
         else if (file.name.contains("text") || file.name.contains("txt"))
@@ -151,6 +152,7 @@ fun InputStream.toFile(extension:String):File{
 /**
  * Get file from Uri
  * */
+@Deprecated("Use toFile() to get file from uri")
 internal fun Uri.getFile(mContext: Context): File {
     val inputStream = mContext.contentResolver?.openInputStream(this)
     var file: File

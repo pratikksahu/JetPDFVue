@@ -7,7 +7,6 @@ import android.net.Uri
 import android.os.Build
 import android.os.ParcelFileDescriptor
 import android.provider.MediaStore
-import android.util.Log
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
@@ -26,8 +25,6 @@ import com.pratikk.jetpdfvue.network.vueDownload
 import com.pratikk.jetpdfvue.util.addImageToPdf
 import com.pratikk.jetpdfvue.util.copyFile
 import com.pratikk.jetpdfvue.util.generateFileName
-import com.pratikk.jetpdfvue.util.getDateddMMyyyyHHmm
-import com.pratikk.jetpdfvue.util.getFile
 import com.pratikk.jetpdfvue.util.mergePdf
 import com.pratikk.jetpdfvue.util.share
 import com.pratikk.jetpdfvue.util.toBase64File
@@ -39,14 +36,10 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import java.io.File
-import java.util.Calendar
 
 abstract class VueReaderState(
     val vueResource: VueResourceType
 ) {
-    init {
-        println(vueResource)
-    }
     abstract val TAG: String
 
     //View State
