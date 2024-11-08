@@ -33,7 +33,6 @@ import com.pratikk.jetpdfvue.state.HorizontalVueReaderState
 import com.pratikk.jetpdfvue.state.VuePageState
 import com.pratikk.jetpdfvue.util.pinchToZoomAndDrag
 
-@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun HorizontalVueReader(
     modifier: Modifier = Modifier,

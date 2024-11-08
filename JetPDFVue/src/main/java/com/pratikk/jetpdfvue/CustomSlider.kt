@@ -9,7 +9,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Slider
-import androidx.compose.material3.SliderPositions
+import androidx.compose.material3.SliderState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -64,8 +64,8 @@ internal fun CustomSlider(
     thumb: @Composable (thumbValue: Int) -> Unit = {
         CustomSliderDefaults.Thumb(it.toString())
     },
-    track: @Composable (sliderPositions: SliderPositions) -> Unit = { sliderPositions ->
-        CustomSliderDefaults.Track(sliderPositions = sliderPositions)
+    track: @Composable (sliderState: SliderState) -> Unit = { sliderState ->
+        CustomSliderDefaults.Track(sliderState = sliderState)
     },
     indicator: @Composable (indicatorValue: Int) -> Unit = { indicatorValue ->
         CustomSliderDefaults.Indicator(indicatorValue = indicatorValue.toString())
@@ -294,9 +294,10 @@ object CustomSliderDefaults {
      * @param height The height of the track.
      * @param shape The shape of the track.
      */
+    @OptIn(ExperimentalMaterial3Api::class)
     @Composable
     fun Track(
-        sliderPositions: SliderPositions,
+        sliderState: SliderState,
         modifier: Modifier = Modifier,
         trackColor: Color = TrackColor,
         progressColor: Color = PrimaryColor,
@@ -311,7 +312,7 @@ object CustomSliderDefaults {
             Box(
                 modifier = Modifier
                     .progress(
-                        sliderPositions = sliderPositions,
+                        sliderState = sliderState,
                         height = height,
                         shape = shape
                     )
@@ -372,12 +373,13 @@ fun Modifier.track(
     .heightIn(min = height)
     .clip(shape)
 
+@OptIn(ExperimentalMaterial3Api::class)
 fun Modifier.progress(
-    sliderPositions: SliderPositions,
+    sliderState: SliderState,
     height: Dp = TrackHeight,
     shape: Shape = CircleShape
 ) =
-    fillMaxWidth(fraction = sliderPositions.activeRange.endInclusive - sliderPositions.activeRange.start)
+    fillMaxWidth(fraction = sliderState.valueRange.endInclusive - sliderState.valueRange.start)
         .heightIn(min = height)
         .clip(shape)
 

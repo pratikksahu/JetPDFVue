@@ -2,6 +2,7 @@ package com.pratikk.jetpackpdf.horizontalSamples
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -16,6 +17,7 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.RotateLeft
 import androidx.compose.material.icons.filled.RotateRight
 import androidx.compose.material.icons.filled.Share
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -30,13 +32,14 @@ import com.pratikk.jetpdfvue.HorizontalVueReader
 import com.pratikk.jetpdfvue.VueHorizontalSlider
 import com.pratikk.jetpdfvue.state.HorizontalVueReaderState
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HorizontalSampleB(
     modifier: Modifier = Modifier,
     horizontalVueReaderState: HorizontalVueReaderState,
     import: () -> Unit
 ) {
-    BoxWithConstraints(
+    Box(
         modifier = modifier
     ) {
         val background = Modifier.background(MaterialTheme.colorScheme.background.copy(alpha = 0.75f),MaterialTheme.shapes.small)
