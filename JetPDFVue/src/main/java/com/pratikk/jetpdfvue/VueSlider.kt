@@ -1,6 +1,8 @@
 package com.pratikk.jetpdfvue
 
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.SliderPositions
+import androidx.compose.material3.SliderState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
@@ -12,6 +14,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import com.pratikk.jetpdfvue.state.HorizontalVueReaderState
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun VueHorizontalSlider(
     modifier: Modifier = Modifier,
@@ -25,8 +28,8 @@ fun VueHorizontalSlider(
     thumb: @Composable (thumbValue: Int) -> Unit = {
         CustomSliderDefaults.Thumb(it.toString())
     },
-    track: @Composable (sliderPositions: SliderPositions) -> Unit = { sliderPositions ->
-        CustomSliderDefaults.Track(sliderPositions = sliderPositions)
+    track: @Composable (sliderState: SliderState) -> Unit = { sliderState ->
+        CustomSliderDefaults.Track(sliderState = sliderState)
     },
     indicator: @Composable (indicatorValue: Int) -> Unit = { indicatorValue ->
         CustomSliderDefaults.Indicator(indicatorValue = indicatorValue.toString())

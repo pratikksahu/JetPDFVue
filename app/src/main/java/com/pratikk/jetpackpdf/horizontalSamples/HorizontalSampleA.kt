@@ -2,6 +2,7 @@ package com.pratikk.jetpackpdf.horizontalSamples
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -42,7 +43,7 @@ fun HorizontalSampleA(
     horizontalVueReaderState: HorizontalVueReaderState,
     import:() -> Unit
 ) {
-    BoxWithConstraints(
+    Box(
         modifier = modifier
     ) {
         val scope = rememberCoroutineScope()
