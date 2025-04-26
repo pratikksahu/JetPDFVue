@@ -53,7 +53,7 @@ Remote sources might not work sometimes because files are hosted on google drive
 
 ```gradle
 dependencies {
-        implementation("com.github.pratikksahu:JetPDFVue:1.0.3")
+        implementation("com.github.pratikksahu:JetPDFVue:1.0.7")
 }
 ```
 ## How to use
