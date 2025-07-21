@@ -24,6 +24,7 @@ import androidx.core.net.toUri
 import com.pratikk.jetpdfvue.util.getDateddMMyyyyHHmm
 import com.pratikk.jetpdfvue.util.getFileType
 import com.pratikk.jetpdfvue.util.toFile
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -134,26 +135,33 @@ class VueFilePicker {
                 importJob = launch(context = coroutineContext + Dispatchers.IO, start = CoroutineStart.LAZY) {
                     with((vueFilePickerState as VueFilePickerState.VueFilePickerImported)) {
                         //Create a temp file using result uri
-                        val file = context.contentResolver.openInputStream(uri)?.use {
-                            val ext = when (uri.getFileType(context)) {
-                                VueFileType.PDF -> {
-                                    "pdf"
-                                }
+                        val file = try {
+                            context.contentResolver.openInputStream(uri)?.use {
+                                val ext = when (uri.getFileType(context)) {
+                                    VueFileType.PDF -> {
+                                        "pdf"
+                                    }
 
-                                VueFileType.IMAGE -> {
-                                    "jpg"
-                                }
+                                    VueFileType.IMAGE -> {
+                                        "jpg"
+                                    }
 
-                                VueFileType.BASE64 -> {
-                                    "txt"
+                                    VueFileType.BASE64 -> {
+                                        "txt"
+                                    }
                                 }
+                                it.toFile(ext)
                             }
-                            it.toFile(ext)
-                        }!!
-                        interceptResult(file)
-
-                        if (isActive) {
-                            onResult(file)
+                        } catch (e: CancellationException) {
+                            throw e
+                        } catch (_: Exception) {
+                            null
+                        }
+                        file?.let {
+                            interceptResult(it)
+                            if (isActive) {
+                                onResult(file)
+                            }
                         }
                     }
                 }.apply {
