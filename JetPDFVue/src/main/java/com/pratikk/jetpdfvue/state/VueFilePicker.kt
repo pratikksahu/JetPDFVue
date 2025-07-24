@@ -127,7 +127,8 @@ class VueFilePicker {
     @Composable
     fun getLauncher(
         interceptResult: suspend (File) -> Unit = {},
-        onResult: (File) -> Unit = {}
+        onResult: (File) -> Unit = {},
+        onError:(Exception) -> Unit = {}
     ): ManagedActivityResultLauncher<Intent, ActivityResult> {
         val context = LocalContext.current
         LaunchedEffect(key1 = vueFilePickerState, block = {
@@ -154,7 +155,8 @@ class VueFilePicker {
                             }
                         } catch (e: CancellationException) {
                             throw e
-                        } catch (_: Exception) {
+                        } catch (e: Exception) {
+                            onError(e)
                             null
                         }
                         file?.let {
