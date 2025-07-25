@@ -64,14 +64,22 @@ class VueFilePicker {
             },
             restore = {
                 VueFilePicker().apply {
-                    importFile = (it[0] as String?)?.let { path ->
-                        File(path)
+                    importFile = try {
+                        (it[0] as String?)?.let { path ->
+                            File(path)
+                        }
+                    } catch (_: Exception) {
+                        null
                     }
-                    vueFilePickerState = it[1] as VueFilePickerState
+                    if(importFile != null) {
+                        vueFilePickerState = it[1] as VueFilePickerState
+                    } else {
+                        vueFilePickerState = VueFilePickerState.VueFilePickerIdeal
+                    }
                 }
             }
         )
-        val UriSaver:Saver<Uri,*> = listSaver(
+        val UriSaver: Saver<Uri, *> = listSaver(
             save = { listOf(VueFilePickerState.VueFilePickerImported(it)) },
             restore = {
                 it[0].uri
@@ -93,15 +101,18 @@ class VueFilePicker {
             lazyMessage = { "File Sources cannot be empty" })
         val intents = ArrayList<Intent>()
         val filterImportState = vueImportSources.toMutableList().let {
-            if (it.contains(VueImportSources.BASE64) && it.contains(VueImportSources.PDF) && it.contains(VueImportSources.GALLERY)) {
+            if (it.contains(VueImportSources.BASE64) && it.contains(VueImportSources.PDF) && it.contains(
+                    VueImportSources.GALLERY
+                )
+            ) {
                 it.remove(VueImportSources.PDF)
                 it.remove(VueImportSources.BASE64)
                 intents.add(base64PdfAndGalleryIntent())
-            }else if(it.contains(VueImportSources.BASE64) && it.contains(VueImportSources.PDF)){
+            } else if (it.contains(VueImportSources.BASE64) && it.contains(VueImportSources.PDF)) {
                 it.remove(VueImportSources.PDF)
                 it.remove(VueImportSources.BASE64)
                 intents.add(base64AndPdfIntent())
-            }else if(it.contains(VueImportSources.PDF) && it.contains(VueImportSources.GALLERY)) {
+            } else if (it.contains(VueImportSources.PDF) && it.contains(VueImportSources.GALLERY)) {
                 it.remove(VueImportSources.PDF)
                 intents.add(pdfAndGalleryIntent())
             }
@@ -128,12 +139,15 @@ class VueFilePicker {
     fun getLauncher(
         interceptResult: suspend (File) -> Unit = {},
         onResult: (File) -> Unit = {},
-        onError:(Exception) -> Unit = {}
+        onError: (Exception) -> Unit = {}
     ): ManagedActivityResultLauncher<Intent, ActivityResult> {
         val context = LocalContext.current
         LaunchedEffect(key1 = vueFilePickerState, block = {
             if (vueFilePickerState is VueFilePickerState.VueFilePickerImported && importJob == null) {
-                importJob = launch(context = coroutineContext + Dispatchers.IO, start = CoroutineStart.LAZY) {
+                importJob = launch(
+                    context = coroutineContext + Dispatchers.IO,
+                    start = CoroutineStart.LAZY
+                ) {
                     with((vueFilePickerState as VueFilePickerState.VueFilePickerImported)) {
                         //Create a temp file using result uri
                         val file = try {
@@ -264,7 +278,7 @@ class VueFilePicker {
         intent.type = "*/*"
         intent.putExtra(
             Intent.EXTRA_MIME_TYPES,
-            listOf("application/pdf", "text/plain","image/*").toTypedArray()
+            listOf("application/pdf", "text/plain", "image/*").toTypedArray()
         )
         intent.addCategory(Intent.CATEGORY_OPENABLE)
         return intent
@@ -280,6 +294,7 @@ class VueFilePicker {
         intent.addCategory(Intent.CATEGORY_OPENABLE)
         return intent
     }
+
     private fun pdfAndGalleryIntent(): Intent {
         val intent = Intent(Intent.ACTION_GET_CONTENT)
         intent.type = "*/*"
