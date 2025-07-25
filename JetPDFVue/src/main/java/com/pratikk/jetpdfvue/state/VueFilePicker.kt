@@ -159,11 +159,15 @@ class VueFilePicker {
                             onError(e)
                             null
                         }
-                        file?.let {
-                            interceptResult(it)
-                            if (isActive) {
-                                onResult(file)
+                        try {
+                            file?.let {
+                                interceptResult(it)
+                                if (isActive) {
+                                    onResult(file)
+                                }
                             }
+                        } catch (e: Exception) {
+                            onError(e)
                         }
                     }
                 }.apply {
@@ -185,8 +189,14 @@ class VueFilePicker {
                     //Other sources
                     VueFilePickerState.VueFilePickerImported(uri)
                 } else {
-                    //From Camera
-                    VueFilePickerState.VueFilePickerImported(importFile!!.toUri())
+                    try {
+                        val uriFile = importFile!!.toUri()
+                        //From Camera
+                        VueFilePickerState.VueFilePickerImported(uriFile)
+                    } catch (e: Exception) {
+                        onError(e)
+                        VueFilePickerState.VueFilePickerIdeal
+                    }
                 }
             } else {
                 VueFilePickerState.VueFilePickerIdeal
